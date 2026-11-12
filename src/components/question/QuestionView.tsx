@@ -7,6 +7,8 @@ import { shuffle } from '@/lib/questionPool';
 import { play } from '@/lib/sound';
 import { topicById } from '@/content/topics';
 import { Button, ChemText, Icon, Kbd, TopicBadge } from '@/components/ui';
+import { useI18n } from '@/i18n/useI18n';
+import type { Dict } from '@/i18n';
 
 export interface AnswerOutcome {
   result: CheckResult;
@@ -24,7 +26,6 @@ interface Props {
   meta?: React.ReactNode;
 }
 
-const DIFF_LABEL = ['', 'Foundation', 'Standard', 'Challenge'];
 
 function initialResponse(q: PoolQuestion, order: number[], rightOrder: string[]): Response {
   switch (q.type) {
@@ -80,6 +81,7 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
   const [outcome, setOutcome] = useState<CheckResult | null>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t, c } = useI18n();
 
   useEffect(() => {
     setResp(initialResponse(q, itemOrder, rightOrder));
@@ -139,23 +141,23 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
     <div className="mx-auto w-full max-w-3xl">
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted">
         <TopicBadge topic={q.topic} size={26} />
-        <span className="font-semibold text-ink">{topic?.short ?? q.topic}</span>
-        {q.subtopic && <span>· {q.subtopic}</span>}
-        <span className="chip" title="Difficulty">
+        <span className="font-semibold text-ink">{c.topicShort(topic, q.topic)}</span>
+        {q.subtopic && <span>· {c.subtopic(q.subtopic)}</span>}
+        <span className="chip" title={t.question.difficulty}>
           {'●'.repeat(q.difficulty)}
           <span className="opacity-40">{'●'.repeat(3 - q.difficulty)}</span>
-          <span className="ml-1">{DIFF_LABEL[q.difficulty]}</span>
+          <span className="ml-1">{t.question.difficulties[q.difficulty]}</span>
         </span>
         <span className="ml-auto">{meta}</span>
       </div>
 
       <div className="card p-5 sm:p-7">
         <ChemText as="p" text={q.question} className="font-display text-xl leading-snug sm:text-2xl" />
-        {q.type === 'multi' && !answered && <p className="mt-1 text-sm text-muted">Select all that apply.</p>}
+        {q.type === 'multi' && !answered && <p className="mt-1 text-sm text-muted">{t.question.selectAll}</p>}
 
         <div className="mt-5">
           {(q.type === 'mcq' || q.type === 'multi') && (
-            <div className="grid gap-2.5" role={q.type === 'mcq' ? 'radiogroup' : 'group'} aria-label="Answer options">
+            <div className="grid gap-2.5" role={q.type === 'mcq' ? 'radiogroup' : 'group'} aria-label={t.question.options}>
               {optOrder.map((oi, pos) => {
                 const chosen = resp.type === 'mcq' ? resp.choice === oi : resp.type === 'multi' && resp.choices.includes(oi);
                 const isRight = q.type === 'mcq' ? q.answer === oi : q.answer.includes(oi);
@@ -169,6 +171,7 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
                     state={state}
                     disabled={answered}
                     text={q.options[oi]}
+                    t={t}
                     onClick={() => {
                       if (q.type === 'mcq') setResp({ type: 'mcq', choice: oi });
                       else
@@ -191,8 +194,8 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
                 inputMode={q.type === 'numeric' ? 'decimal' : 'text'}
                 autoComplete="off"
                 spellCheck={false}
-                aria-label="Your answer"
-                placeholder={q.type === 'numeric' ? 'Type a number, e.g. 0.25 or 1.5 x 10^-3' : 'Type your answer'}
+                aria-label={t.question.yourAnswer}
+                placeholder={q.type === 'numeric' ? t.question.numericPlaceholder : t.question.textPlaceholder}
                 value={(resp as { value: string }).value}
                 disabled={answered}
                 onChange={(e) => setResp({ type: q.type, value: e.target.value } as Response)}
@@ -202,16 +205,16 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
           )}
           {q.type === 'text' && !answered && (resp as { value: string }).value && (
             <p className="mt-2 text-sm text-muted">
-              Preview: <ChemText text={(resp as { value: string }).value} className="font-semibold text-ink" />
+              {t.question.preview} <ChemText text={(resp as { value: string }).value} className="font-semibold text-ink" />
             </p>
           )}
 
           {q.type === 'order' && resp.type === 'order' && (
-            <OrderInput items={resp.items} answered={answered} truth={q.answer} onChange={(items) => setResp({ type: 'order', items })} />
+            <OrderInput t={t} items={resp.items} answered={answered} truth={q.answer} onChange={(items) => setResp({ type: 'order', items })} />
           )}
 
           {q.type === 'match' && resp.type === 'match' && (
-            <MatchInput pairs={q.answer} rights={rightOrder} value={resp.pairs} answered={answered} onChange={(pairs) => setResp({ type: 'match', pairs })} />
+            <MatchInput t={t} pairs={q.answer} rights={rightOrder} value={resp.pairs} answered={answered} onChange={(pairs) => setResp({ type: 'match', pairs })} />
           )}
         </div>
 
@@ -220,13 +223,13 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
             <p className="hidden text-xs text-muted sm:block">
               {(q.type === 'mcq' || q.type === 'multi') && (
                 <>
-                  <Kbd>1</Kbd>–<Kbd>{optOrder.length}</Kbd> choose ·{' '}
+                  <Kbd>1</Kbd>–<Kbd>{optOrder.length}</Kbd> {t.question.choose} ·{' '}
                 </>
               )}
-              <Kbd>Enter</Kbd> check
+              <Kbd>Enter</Kbd> {t.question.check}
             </p>
             <Button onClick={submit} disabled={!canSubmit} size="lg" icon="check" className="ml-auto">
-              Check answer
+              {t.question.checkAnswer}
             </Button>
           </div>
         )}
@@ -247,12 +250,12 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
               </span>
               <div className="min-w-0 flex-1">
                 <p className={`font-display text-xl font-semibold ${outcome.correct ? 'text-good' : 'text-bad'}`}>
-                  {outcome.correct ? 'Correct!' : outcome.score > 0 ? `Partly right (${Math.round(outcome.score * 100)}%)` : 'Not quite'}
+                  {outcome.correct ? t.question.correct : outcome.score > 0 ? t.question.partly(Math.round(outcome.score * 100)) : t.question.notQuite}
                 </p>
-                {outcome.note && <p className="mt-1 text-sm font-semibold">{outcome.note}</p>}
+                {outcome.note && <p className="mt-1 text-sm font-semibold">{t.question.notes[outcome.note]}</p>}
                 {!outcome.correct && (
                   <p className="mt-1">
-                    <span className="text-muted">Answer: </span>
+                    <span className="text-muted">{t.question.answer} </span>
                     <ChemText text={describeAnswer(q)} className="font-semibold" />
                   </p>
                 )}
@@ -274,7 +277,7 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
   );
 }
 
-function OptionButton({ index, text, state, onClick, disabled, multi }: { index: number; text: string; state: 'idle' | 'chosen' | 'right' | 'wrong' | 'missed'; onClick: () => void; disabled: boolean; multi: boolean }) {
+function OptionButton({ index, text, state, onClick, disabled, multi, t }: { index: number; text: string; state: 'idle' | 'chosen' | 'right' | 'wrong' | 'missed'; onClick: () => void; disabled: boolean; multi: boolean; t: Dict }) {
   const styles = {
     idle: 'border-border bg-surface hover:border-primary/60 hover:bg-primary/5',
     chosen: 'border-primary bg-primary/10 ring-2 ring-primary/30',
@@ -296,13 +299,13 @@ function OptionButton({ index, text, state, onClick, disabled, multi }: { index:
     >
       <span className={`grid h-7 w-7 shrink-0 place-items-center ${multi ? 'rounded-md' : 'rounded-full'} text-sm font-bold ${markerStyle}`}>{marker}</span>
       <ChemText text={text} className="flex-1 font-semibold" />
-      {state === 'missed' && <span className="text-xs font-bold text-good">Correct answer</span>}
-      {state === 'wrong' && <span className="text-xs font-bold text-bad">Your choice</span>}
+      {state === 'missed' && <span className="text-xs font-bold text-good">{t.question.correctAnswer}</span>}
+      {state === 'wrong' && <span className="text-xs font-bold text-bad">{t.question.yourChoice}</span>}
     </button>
   );
 }
 
-function OrderInput({ items, onChange, answered, truth }: { items: string[]; onChange: (i: string[]) => void; answered: boolean; truth: string[] }) {
+function OrderInput({ items, onChange, answered, truth, t }: { items: string[]; onChange: (i: string[]) => void; answered: boolean; truth: string[]; t: Dict }) {
   const move = (i: number, d: number) => {
     const j = i + d;
     if (j < 0 || j >= items.length) return;
@@ -312,7 +315,7 @@ function OrderInput({ items, onChange, answered, truth }: { items: string[]; onC
   };
   return (
     <div>
-      {!answered && <p className="mb-2 text-sm text-muted">Drag the items, or use the arrow buttons, to put them in order (top = first).</p>}
+      {!answered && <p className="mb-2 text-sm text-muted">{t.question.orderHelp}</p>}
       <Reorder.Group axis="y" values={items} onReorder={answered ? () => {} : onChange} className="grid gap-2">
         {items.map((it, i) => {
           const ok = answered && truth[i] === it;
@@ -329,14 +332,14 @@ function OrderInput({ items, onChange, answered, truth }: { items: string[]; onC
               {answered ? (
                 <span className={`flex items-center gap-1 text-xs font-bold ${ok ? 'text-good' : 'text-bad'}`}>
                   <Icon name={ok ? 'check' : 'x'} size={16} strokeWidth={3} />
-                  {!ok && <>should be #{truth.indexOf(it) + 1}</>}
+                  {!ok && <>{t.question.shouldBe(truth.indexOf(it) + 1)}</>}
                 </span>
               ) : (
                 <span className="flex gap-1">
-                  <button className="grid h-8 w-8 place-items-center rounded-lg hover:bg-surface-2 disabled:opacity-30" aria-label={`Move ${it} up`} disabled={i === 0} onClick={() => move(i, -1)}>
+                  <button className="grid h-8 w-8 place-items-center rounded-lg hover:bg-surface-2 disabled:opacity-30" aria-label={t.question.moveUp(formatChem(it))} disabled={i === 0} onClick={() => move(i, -1)}>
                     <Icon name="arrow-up" size={16} />
                   </button>
-                  <button className="grid h-8 w-8 place-items-center rounded-lg hover:bg-surface-2 disabled:opacity-30" aria-label={`Move ${it} down`} disabled={i === items.length - 1} onClick={() => move(i, 1)}>
+                  <button className="grid h-8 w-8 place-items-center rounded-lg hover:bg-surface-2 disabled:opacity-30" aria-label={t.question.moveDown(formatChem(it))} disabled={i === items.length - 1} onClick={() => move(i, 1)}>
                     <Icon name="arrow-down" size={16} />
                   </button>
                 </span>
@@ -349,11 +352,11 @@ function OrderInput({ items, onChange, answered, truth }: { items: string[]; onC
   );
 }
 
-function MatchInput({ pairs, rights, value, onChange, answered }: { pairs: [string, string][]; rights: string[]; value: Record<string, string>; onChange: (v: Record<string, string>) => void; answered: boolean }) {
+function MatchInput({ pairs, rights, value, onChange, answered, t }: { pairs: [string, string][]; rights: string[]; value: Record<string, string>; onChange: (v: Record<string, string>) => void; answered: boolean; t: Dict }) {
   const used = new Set(Object.values(value));
   return (
     <div className="grid gap-2.5">
-      {!answered && <p className="text-sm text-muted">Choose the match for each item.</p>}
+      {!answered && <p className="text-sm text-muted">{t.question.matchHelp}</p>}
       {pairs.map(([left, right]) => {
         const v = value[left] ?? '';
         const ok = answered && v === right;
@@ -377,7 +380,7 @@ function MatchInput({ pairs, rights, value, onChange, answered }: { pairs: [stri
             ) : (
               <select
                 className="input"
-                aria-label={`Match for ${formatChem(left)}`}
+                aria-label={t.question.matchFor(formatChem(left))}
                 value={v}
                 onChange={(e) => {
                   const next = { ...value };
@@ -386,7 +389,7 @@ function MatchInput({ pairs, rights, value, onChange, answered }: { pairs: [stri
                   onChange(next);
                 }}
               >
-                <option value="">Choose…</option>
+                <option value="">{t.question.choosePlaceholder}</option>
                 {rights.map((r) => (
                   <option key={r} value={r} disabled={used.has(r) && v !== r}>
                     {formatChem(r)}

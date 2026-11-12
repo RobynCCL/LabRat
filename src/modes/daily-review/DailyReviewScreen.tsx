@@ -10,11 +10,13 @@ import { QuestionView } from '@/components/question/QuestionView';
 import { Button, Card, Icon, Moles, ProgressBar } from '@/components/ui';
 import { ModeShell } from '../shared/ModeShell';
 import mode from './index';
+import { useI18n } from '@/i18n/useI18n';
 
 export default function DailyReviewScreen() {
   const save = useGame((g) => g.save);
   const pool = useGame((g) => g.pool);
   const { recordAnswer, reviewAnswer, grant, completeReview } = useGame.getState();
+  const { t } = useI18n();
   const today = toDay();
 
   const byUid = useMemo(() => new Map(pool.map((q) => [q.uid, q])), [pool]);
@@ -44,7 +46,7 @@ export default function DailyReviewScreen() {
       const newStreak = doneToday ? streak : streak + 1;
       completeReview();
       const r = reviewCompletionReward(newStreak);
-      grant(r, `Review done · ${newStreak}-day streak`);
+      grant(r, t.feedback.reviewDone(newStreak));
       setEarned((e) => e + r.moles);
       setFinished(true);
     }
@@ -52,12 +54,13 @@ export default function DailyReviewScreen() {
 
   return (
     <ModeShell
+      modeId={mode.id}
       title={mode.name}
       icon={mode.icon}
       colour={mode.colour}
       right={
         <span className={`chip ${streak ? 'bg-accent/15 text-accent' : ''}`}>
-          <Icon name="flame" size={14} /> {streak}-day streak
+          <Icon name="flame" size={14} /> {t.review.streakChip(streak)}
         </span>
       }
     >
@@ -66,43 +69,43 @@ export default function DailyReviewScreen() {
           <motion.div key="intro" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid gap-5">
             <Card className="flex flex-wrap items-center justify-between gap-4 p-6">
               <div>
-                <p className="font-display text-3xl font-semibold num">{due.length ? `${due.length} card${due.length === 1 ? '' : 's'} due` : 'All caught up!'}</p>
+                <p className="font-display text-3xl font-semibold num">{due.length ? t.review.due(due.length) : t.review.caughtUp}</p>
                 <p className="text-muted">
                   {due.length
-                    ? `Today's session: ${Math.min(due.length, economy.review.maxCards)} cards. Correct answers move up a box; mistakes go back to box 1.`
+                    ? t.review.sessionInfo(Math.min(due.length, economy.review.maxCards))
                     : Object.keys(save.srs.cards).length
-                      ? 'Nothing is due today. Cards come back as their box interval runs out.'
-                      : 'Questions you get wrong in a Topic Quiz land here so you can review them later.'}
+                      ? t.review.nothingToday
+                      : t.review.empty}
                 </p>
               </div>
               {due.length ? (
                 <Button size="lg" icon="play" onClick={start}>
-                  Start review
+                  {t.review.start}
                 </Button>
               ) : (
                 <Link to="/play/topic-quiz">
                   <Button size="lg" variant="secondary" icon="target">
-                    Take a quiz
+                    {t.review.takeQuiz}
                   </Button>
                 </Link>
               )}
             </Card>
 
             <section>
-              <h2 className="mb-2 text-lg font-semibold">Leitner boxes</h2>
+              <h2 className="mb-2 text-lg font-semibold">{t.review.boxes}</h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {Array.from({ length: BOX_COUNT }, (_, b) => (
                   <div key={b} className="card relative overflow-hidden p-4">
-                    <div className="text-xs font-bold uppercase tracking-wide text-muted">Box {b + 1}</div>
+                    <div className="text-xs font-bold uppercase tracking-wide text-muted">{t.review.box(b + 1)}</div>
                     <div className="font-display text-3xl font-semibold num">{counts[b]}</div>
-                    <div className="text-xs text-muted">every {DEFAULT_INTERVALS[b + 1]} day{DEFAULT_INTERVALS[b + 1] === 1 ? '' : 's'}</div>
+                    <div className="text-xs text-muted">{t.review.every(DEFAULT_INTERVALS[b + 1])}</div>
                     <div className="absolute bottom-0 left-0 h-1.5 bg-epic/70" style={{ width: `${((b + 1) / BOX_COUNT) * 100}%` }} />
                   </div>
                 ))}
               </div>
               <p className="mt-2 text-sm text-muted">
-                Graduated (mastered) cards: <span className="font-semibold text-ink num">{save.srs.graduated}</span> · Best streak:{' '}
-                <span className="font-semibold text-ink num">{save.srs.streak.best}</span> days
+                {t.review.graduated} <span className="font-semibold text-ink num">{save.srs.graduated}</span> · {t.review.best}{' '}
+                <span className="font-semibold text-ink num">{save.srs.streak.best}</span> {t.review.days}
               </p>
             </section>
           </motion.div>
@@ -110,10 +113,10 @@ export default function DailyReviewScreen() {
 
         {session && !finished && session[i] && (
           <motion.div key={'r' + i} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.18 }}>
-            <ProgressBar value={i / session.length} className="mx-auto mb-4 max-w-3xl" colour="rgb(var(--r-epic))" label="Review progress" />
+            <ProgressBar value={i / session.length} className="mx-auto mb-4 max-w-3xl" colour="rgb(var(--r-epic))" label={t.review.progress} />
             <QuestionView
               question={session[i]}
-              meta={`Box ${save.srs.cards[session[i].uid]?.box ?? 1} · ${i + 1} / ${session.length}`}
+              meta={t.review.meta(save.srs.cards[session[i].uid]?.box ?? 1, i + 1, session.length)}
               onAnswered={({ result }) => {
                 const q = session[i];
                 recordAnswer(q, result.correct, { source: 'review' });
@@ -124,7 +127,7 @@ export default function DailyReviewScreen() {
                 setResults((x) => [...x, result.correct]);
               }}
               onNext={next}
-              nextLabel={i + 1 < session.length ? 'Next card' : 'Finish review'}
+              nextLabel={i + 1 < session.length ? t.review.nextCard : t.review.finish}
             />
           </motion.div>
         )}
@@ -135,20 +138,18 @@ export default function DailyReviewScreen() {
               <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent/15 text-accent">
                 <Icon name="flame" size={34} />
               </div>
-              <h2 className="mt-3 text-3xl font-semibold">Review complete</h2>
-              <p className="text-muted">
-                {results.filter(Boolean).length} of {results.length} remembered · streak {currentStreak(useGame.getState().save.srs, today)} day(s)
-              </p>
+              <h2 className="mt-3 text-3xl font-semibold">{t.review.complete}</h2>
+              <p className="text-muted">{t.review.remembered(results.filter(Boolean).length, results.length, currentStreak(useGame.getState().save.srs, today))}</p>
               <div className="mt-4 flex justify-center">
                 <Moles amount={earned} size={26} className="text-2xl" />
               </div>
               <div className="mt-6 flex justify-center gap-2">
                 <Link to="/play">
-                  <Button variant="secondary">Back to modes</Button>
+                  <Button variant="secondary">{t.play.backToModes}</Button>
                 </Link>
                 {dueCards(useGame.getState().save.srs, today, new Set(byUid.keys())).length > 0 && (
                   <Button icon="refresh" onClick={start}>
-                    Review more
+                    {t.review.reviewMore}
                   </Button>
                 )}
               </div>

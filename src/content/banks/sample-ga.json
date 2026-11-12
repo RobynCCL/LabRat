@@ -1,0 +1,142 @@
+{
+  "bankId": "sample-ga",
+  "name": "Ceisteanna samplacha (le haghaidh tástála)",
+  "version": 1,
+  "language": "ga",
+  "description": "Sampla beag ionsuite i nGaeilge ina bhfuil gach cineál ceiste. Múch é sna bainc cheisteanna nuair a chuireann tú do bhainc féin leis. Ba chóir do mhúinteoir an téarmaíocht a sheiceáil.",
+  "sample": true,
+  "questions": [
+    {
+      "id": "at-01", "topic": "atomic-structure", "subtopic": "Stair an adaimh", "type": "mcq", "difficulty": 1,
+      "question": "Cén cáithnín fo-adamhach a d’aimsigh James Chadwick in 1932?",
+      "options": ["Prótón", "Neodrón", "Leictreon", "Positrón"],
+      "answer": 1,
+      "explanation": "Bhuail Chadwick beirilliam le cáithníní alfa agus bhraith sé radaíocht neodrach a bhí in ann dul tríd ábhair: an neodrón.",
+      "tags": ["stair"]
+    },
+    {
+      "id": "at-02", "topic": "atomic-structure", "subtopic": "Cumraíocht leictreon", "type": "text", "difficulty": 2,
+      "question": "Scríobh cumraíocht leictreon (nodaireacht s, p) adaimh sóidiam.",
+      "answer": ["1s2 2s2 2p6 3s1", "1s2 2s2 2px2 2py2 2pz2 3s1"],
+      "explanation": "Tá 11 leictreon ag sóidiam: 1s² 2s² 2p⁶ 3s¹. Cailltear an leictreon 3s seachtrach go héasca chun Na⁺ a dhéanamh."
+    },
+    {
+      "id": "at-03", "topic": "atomic-structure", "subtopic": "Iseatóip agus Ar", "type": "multi", "difficulty": 1,
+      "question": "Cé na ráitis atá fíor faoi iseatóip den dúil chéanna? Roghnaigh gach ceann atá ceart.",
+      "options": ["Tá an líon céanna prótón acu", "Tá líon difriúil neodrón acu", "Tá an uimhir mhaise chéanna acu", "Tá na hairíonna ceimiceacha céanna acu"],
+      "answer": [0, 1, 3],
+      "explanation": "Tá an uimhir adamhach chéanna (prótóin) ag iseatóip ach líon difriúil neodrón, mar sin bíonn a n-uimhreacha maise difriúil. Braitheann airíonna ceimiceacha ar shocrú na leictreon, atá mar an gcéanna."
+    },
+    {
+      "id": "at-04", "topic": "atomic-structure", "subtopic": "Treochtaí peiriadacha", "type": "order", "difficulty": 3,
+      "question": "Cuir na dúile seo in ord méadaitheach den chéad fhuinneamh ianúcháin.",
+      "answer": ["Na", "Al", "Mg", "Si"],
+      "explanation": "Méadaíonn fuinneamh ianúcháin trasna tréimhse de ghnáth, ach tá Al níos ísle ná Mg: tá leictreon seachtrach an alúmanaim i bhfo-leibhéal 3p, atá níos airde ó thaobh fuinnimh de agus atá sciathaithe ag an bhfo-leibhéal 3s atá lán."
+    },
+    {
+      "id": "at-05", "topic": "atomic-structure", "subtopic": "Iseatóip agus Ar", "type": "numeric", "difficulty": 2,
+      "question": "Is é 75% Cl-35 agus 25% Cl-37 atá i sampla clóirín. Ríomh mais adamhach choibhneasta an chlóirín.",
+      "answer": { "value": 35.5, "tolerance": 0.05 },
+      "explanation": "Ar = (75 × 35 + 25 × 37) ÷ 100 = (2625 + 925) ÷ 100 = 35.5"
+    },
+
+    {
+      "id": "st-01", "topic": "stoichiometry", "subtopic": "An mól", "type": "numeric", "difficulty": 1,
+      "question": "Cé mhéad mól atá in 4.0 g de hiodrocsaíd sóidiam, NaOH? (Mr = 40)",
+      "answer": { "value": 0.1, "tolerance": 0.001, "unit": "mol" },
+      "explanation": "móil = mais ÷ Mr = 4.0 ÷ 40 = 0.10 mol"
+    },
+    {
+      "id": "st-02", "topic": "stoichiometry", "subtopic": "Toirt mhólach", "type": "numeric", "difficulty": 1,
+      "question": "Cén toirt a líonann 0.5 mol de ghás idéalach ag teocht agus brú caighdeánach (t.b.c.)?",
+      "answer": { "value": 11.2, "tolerance": 0.05, "unit": "L" },
+      "explanation": "Líonann mól amháin de ghás 22.4 L ag t.b.c., mar sin 0.5 × 22.4 = 11.2 L."
+    },
+    {
+      "id": "st-03", "topic": "stoichiometry", "subtopic": "An mól", "type": "mcq", "difficulty": 1,
+      "question": "Cad é luach thairiseach Avogadro?",
+      "options": ["6.0 × 10^23 mol-1", "6.0 × 10^-23 mol-1", "1.66 × 10^-24 mol-1", "3.0 × 10^8 mol-1"],
+      "answer": 0,
+      "explanation": "Is é 6.0 × 10²³ mol⁻¹ tairiseach Avogadro, L: líon na gcáithníní i mól amháin."
+    },
+    {
+      "id": "st-04", "topic": "stoichiometry", "subtopic": "An mól", "type": "match", "difficulty": 2,
+      "question": "Meaitseáil gach cainníocht lena haonad.",
+      "answer": [["Mais mhólach", "g mol-1"], ["Tiúchan", "mol L-1"], ["Méid substainte", "mol"], ["Toirt mhólach ag t.b.c.", "22.4 L"]],
+      "explanation": "Is gram in aghaidh an mhóil í an mhais mhólach, is móil in aghaidh an lítir í an tiúchan, tomhaistear méid substainte i móil, agus líonann mól amháin de ghás 22.4 L ag t.b.c."
+    },
+    {
+      "id": "st-05", "topic": "stoichiometry", "subtopic": "Foirmlí eimpíreacha agus móilíneacha", "type": "text", "difficulty": 1,
+      "question": "Cad í foirmle eimpíreach an ghlúcóis, C6H12O6?",
+      "answer": ["CH2O"],
+      "caseSensitive": true,
+      "explanation": "Roinn gach foscript ar an bhfachtóir coiteann is mó, 6: C₆H₁₂O₆ → CH₂O."
+    },
+
+    {
+      "id": "or-01", "topic": "organic", "subtopic": "Grúpaí feidhmeacha", "type": "mcq", "difficulty": 1,
+      "question": "Cén grúpa feidhmeach atá in aigéad eatánóch, CH3COOH?",
+      "options": ["Hiodrocsail", "Carbóinil", "Carbocsail", "Eistear"],
+      "answer": 2,
+      "explanation": "Tá an grúpa carbocsail, –COOH, in aigéid charbocsileacha."
+    },
+    {
+      "id": "or-02", "topic": "organic", "subtopic": "Ainmniú (IUPAC)", "type": "text", "difficulty": 1,
+      "question": "Tabhair ainm IUPAC CH3CH2OH.",
+      "answer": ["eatánól"],
+      "explanation": "Dhá charbón (eat-), nascanna aonair amháin (-án-), agus grúpa –OH (-ól): eatánól."
+    },
+    {
+      "id": "or-03", "topic": "organic", "subtopic": "Cineálacha imoibrithe", "type": "multi", "difficulty": 2,
+      "question": "Cé acu díobh seo ar imoibrithe suimiúcháin iad? Roghnaigh gach ceann atá ceart.",
+      "options": ["C2H4 + Br2 -> C2H4Br2", "C2H4 + H2 -> C2H6", "CH4 + Cl2 -> CH3Cl + HCl", "C2H5OH -> C2H4 + H2O"],
+      "answer": [0, 1],
+      "explanation": "In imoibriú suimiúcháin, ceanglaíonn dhá mhóilín le chéile chun móilín amháin a dhéanamh, de ghnáth trasna nasc dúbailte C=C. Is ionadú é clóiriniú an mheatáin; is díothú é díhiodráitiú an eatánóil."
+    },
+    {
+      "id": "or-04", "topic": "organic", "subtopic": "Sraitheanna hómalógacha", "type": "order", "difficulty": 1,
+      "question": "Cuir na halcáin seo in ord méadaitheach fiuchphointe.",
+      "answer": ["Meatán", "Eatán", "Própán", "Bútán"],
+      "explanation": "Ardaíonn an fiuchphointe le fad an tslabhra mar go mbíonn fórsaí van der Waals níos láidre idir móilíní níos mó."
+    },
+    {
+      "id": "or-05", "topic": "organic", "subtopic": "Cineálacha imoibrithe", "type": "match", "difficulty": 2,
+      "question": "Meaitseáil gach cineál imoibrithe le sampla.",
+      "answer": [["Ionadú", "CH4 + Cl2 -> CH3Cl + HCl"], ["Suimiú", "C2H4 + H2 -> C2H6"], ["Díothú", "C2H5OH -> C2H4 + H2O"], ["Ocsaídiú-afocsaídiú", "Eatánól -> eatánal"]],
+      "explanation": "Malartaíonn ionadú adamh amháin ar adamh eile; ceanglaíonn suimiú móilíní trasna nasc dúbailte; baintear móilín beag le díothú chun nasc dúbailte a dhéanamh; is imoibriú ocsaídiúcháin-afocsaídiúcháin é ocsaídiú eatánóil go heatánal (le Na₂Cr₂O₇ aigéadaithe)."
+    },
+
+    {
+      "id": "ra-01", "topic": "rates", "subtopic": "Catalú", "type": "mcq", "difficulty": 1,
+      "question": "Conas a mhéadaíonn catalaíoch ráta imoibriúcháin?",
+      "options": ["Ardaíonn sé teocht na n-imoibreán", "Soláthraíonn sé bealach le fuinneamh gníomhachtúcháin níos ísle", "Méadaíonn sé tiúchan na n-imoibreán", "Bogann sé an chothromaíocht ar dheis"],
+      "answer": 1,
+      "explanation": "Soláthraíonn catalaíoch bealach imoibriúcháin eile le fuinneamh gníomhachtúcháin níos ísle, mar sin bíonn níos mó de na himbhuailtí éifeachtach. Ní ídítear é."
+    },
+    {
+      "id": "ra-02", "topic": "rates", "subtopic": "Fachtóirí a théann i bhfeidhm ar ráta", "type": "multi", "difficulty": 1,
+      "question": "Cé na hathruithe a mhéadódh ráta an imoibriúcháin idir sceallóga marmair agus aigéad hidreaclórach? Roghnaigh gach ceann atá ceart.",
+      "options": ["An teocht a ardú", "Aigéad níos tiubhaithe a úsáid", "Sceallóga marmair níos mó a úsáid", "Marmar púdraithe a úsáid"],
+      "answer": [0, 1, 3],
+      "explanation": "Méadaíonn teocht níos airde, tiúchan níos airde agus achar dromchla níos mó (píosaí níos lú) an ráta. Bíonn achar dromchla níos lú ag sceallóga níos mó, mar sin bíonn an t-imoibriú níos moille."
+    },
+    {
+      "id": "ra-03", "topic": "rates", "subtopic": "Ráta a thomhas", "type": "numeric", "difficulty": 2,
+      "question": "In imoibriú, bailíodh 60 cm3 d’ocsaigin sa chéad 2 nóiméad. Ríomh an meánráta i cm3 s-1.",
+      "answer": { "value": 0.5, "tolerance": 0.01, "unit": "cm3 s-1" },
+      "explanation": "2 nóiméad = 120 s. Meánráta = 60 cm³ ÷ 120 s = 0.5 cm³ s⁻¹."
+    },
+    {
+      "id": "ra-04", "topic": "rates", "subtopic": "Catalú", "type": "text", "difficulty": 2,
+      "question": "Ainmnigh an catalaíoch a úsáidtear sa turgnamh éigeantach ar dhianscaoileadh sárocsaíd hidrigine.",
+      "answer": ["dé-ocsaíd mhangainéise", "ocsaíd mhangainéise(IV)", "ocsaíd mhangainéise (IV)", "MnO2"],
+      "explanation": "Catalaíonn ocsaíd mhangainéise(IV) (dé-ocsaíd mhangainéise, MnO₂) an t-imoibriú 2H₂O₂ → 2H₂O + O₂."
+    },
+    {
+      "id": "ra-05", "topic": "rates", "subtopic": "Fachtóirí a théann i bhfeidhm ar ráta", "type": "order", "difficulty": 1,
+      "question": "Imoibríonn an mhais chéanna marmair le HCl caol iomarcach. Cuir na foirmeacha seo in ord ón imoibriú is moille go dtí an ceann is tapúla.",
+      "answer": ["Sceallóga móra", "Sceallóga beaga", "Púdar"],
+      "explanation": "Bíonn achar dromchla iomlán níos mó ag cáithníní níos lú, mar sin tarlaíonn níos mó imbhuailtí in aghaidh an tsoicind agus bíonn an t-imoibriú níos tapúla."
+    }
+  ]
+}

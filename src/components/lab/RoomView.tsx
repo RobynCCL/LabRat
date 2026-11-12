@@ -77,7 +77,7 @@ export interface RoomViewProps {
 }
 
 export const RoomView = forwardRef<SVGSVGElement, RoomViewProps>(function RoomView(
-  { cols, rows, room, inventory, anim, preview, showGrid, selected, itemProps, overlay, className, title = 'Your laboratory', pets = [], petProps, bubble },
+  { cols, rows, room, inventory, anim, preview, showGrid, selected, itemProps, overlay, className, title = 'Lab', pets = [], petProps, bubble },
   ref,
 ) {
   const { w: W, h: H } = roomPixelSize(cols, rows);

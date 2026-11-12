@@ -1,4 +1,16 @@
 import type { Difficulty, Question, QuestionBank, QuestionType } from './types';
+import { en } from '@/i18n/en';
+import { ga as contentGa } from '@/content/translations';
+
+type V = typeof en.validation;
+/** A validation message: a key into the `validation` text (en.ts / ga.ts) plus its parameters. */
+export type IssueCode = keyof V;
+type ParamsOf<K extends IssueCode> = V[K] extends (...a: infer P) => string ? P : [];
+
+function msg<K extends IssueCode>(code: K, ...params: ParamsOf<K>): { code: K; params: (string | number)[]; message: string } {
+  const v = en.validation[code] as string | ((...a: unknown[]) => string);
+  return { code, params: params as (string | number)[], message: typeof v === 'function' ? v(...params) : v };
+}
 
 export interface TopicRef {
   id: string;
@@ -11,6 +23,10 @@ export interface ValidationIssue {
   row: number | null;
   id?: string;
   field?: string;
+  /** Key into the `validation` text, so the UI can show it in any language. */
+  code: IssueCode;
+  params: (string | number)[];
+  /** English text of the problem. */
   message: string;
 }
 
@@ -41,9 +57,10 @@ export function slugify(s: string): string {
 export function resolveTopic(value: unknown, topics: TopicRef[]): string | null {
   if (!isStr(value)) return null;
   const v = value.trim().toLowerCase();
-  const t = topics.find(
-    (t) => t.id.toLowerCase() === v || t.name.toLowerCase() === v || t.short?.toLowerCase() === v,
-  );
+  const t = topics.find((t) => {
+    const irish = contentGa.topics[t.id];
+    return [t.id, t.name, t.short, irish?.name, irish?.short].some((n) => n?.toLowerCase() === v);
+  });
   return t ? t.id : null;
 }
 
@@ -58,30 +75,30 @@ export function validateQuestion(
 ): { question: Question | null; errors: ValidationIssue[]; warnings: ValidationIssue[] } {
   const errors: ValidationIssue[] = [];
   const warnings: ValidationIssue[] = [];
-  const err = (field: string, message: string) => errors.push({ row, id: idv, field, message });
+  const err = (field: string, m: ReturnType<typeof msg>) => errors.push({ row, id: idv, field, ...m });
 
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
-    return { question: null, errors: [{ row, message: 'Question must be an object.' }], warnings };
+    return { question: null, errors: [{ row, ...msg('notObject') }], warnings };
   }
   const q = raw as Record<string, unknown>;
   const idv = typeof q.id === 'string' || typeof q.id === 'number' ? String(q.id).trim() : undefined;
 
-  if (!idv) err('id', 'Missing "id".');
-  else if (!ID_RE.test(idv)) err('id', `"${idv}" may only contain letters, digits, "-" and "_".`);
+  if (!idv) err('id', msg('missingId'));
+  else if (!ID_RE.test(idv)) err('id', msg('badId', idv));
 
   const topic = resolveTopic(q.topic, topics);
-  if (!topic) err('topic', `Unknown topic "${String(q.topic ?? '')}". Use one of: ${topics.map((t) => t.id).join(', ')}.`);
+  if (!topic) err('topic', msg('unknownTopic', String(q.topic ?? ''), topics.map((t) => t.id).join(', ')));
 
   const type = q.type as QuestionType;
-  if (!TYPES.includes(type)) err('type', `"type" must be one of ${TYPES.join(', ')}.`);
+  if (!TYPES.includes(type)) err('type', msg('badType', TYPES.join(', ')));
 
   const difficulty = Number(q.difficulty ?? 2);
-  if (![1, 2, 3].includes(difficulty)) err('difficulty', '"difficulty" must be 1, 2 or 3.');
+  if (![1, 2, 3].includes(difficulty)) err('difficulty', msg('badDifficulty'));
 
-  if (!isStr(q.question)) err('question', 'Missing "question" text.');
-  if (!isStr(q.explanation)) warnings.push({ row, id: idv, field: 'explanation', message: 'No explanation given.' });
-  if (q.subtopic != null && typeof q.subtopic !== 'string') err('subtopic', '"subtopic" must be text.');
-  if (q.tags != null && !isStrArr(q.tags)) err('tags', '"tags" must be a list of text.');
+  if (!isStr(q.question)) err('question', msg('missingQuestion'));
+  if (!isStr(q.explanation)) warnings.push({ row, id: idv, field: 'explanation', ...msg('noExplanation') });
+  if (q.subtopic != null && typeof q.subtopic !== 'string') err('subtopic', msg('subtopicText'));
+  if (q.tags != null && !isStrArr(q.tags)) err('tags', msg('tagsList'));
 
   const options = q.options;
   const answer = q.answer;
@@ -89,44 +106,44 @@ export function validateQuestion(
 
   switch (type) {
     case 'mcq': {
-      if (!isStrArr(options) || options.length < 2) err('options', 'Multiple choice needs at least 2 text options.');
+      if (!isStrArr(options) || options.length < 2) err('options', msg('mcqOptions'));
       else if (!Number.isInteger(answer) || (answer as number) < 0 || (answer as number) >= options.length)
-        err('answer', `"answer" must be the 0-based index of the correct option (0–${options.length - 1}).`);
+        err('answer', msg('mcqAnswer', options.length - 1));
       break;
     }
     case 'multi': {
-      if (!isStrArr(options) || options.length < 2) err('options', 'Multi-select needs at least 2 text options.');
+      if (!isStrArr(options) || options.length < 2) err('options', msg('multiOptions'));
       else if (
         !Array.isArray(answer) ||
         answer.length === 0 ||
         !answer.every((a) => Number.isInteger(a) && a >= 0 && a < options.length)
       )
-        err('answer', `"answer" must be a non-empty list of 0-based option indices (0–${options.length - 1}).`);
+        err('answer', msg('multiAnswer', options.length - 1));
       else cleanAnswer = [...new Set(answer as number[])].sort((a, b) => a - b);
       break;
     }
     case 'numeric': {
       const a = (typeof answer === 'number' ? { value: answer } : answer) as Record<string, unknown> | null;
       if (!a || typeof a !== 'object' || typeof a.value !== 'number' || !Number.isFinite(a.value))
-        err('answer', '"answer" must be {"value": number, "tolerance"?: number, "unit"?: text}.');
+        err('answer', msg('numericAnswer'));
       else if (a.tolerance != null && (typeof a.tolerance !== 'number' || a.tolerance < 0))
-        err('answer.tolerance', '"tolerance" must be a positive number.');
-      else if (a.unit != null && typeof a.unit !== 'string') err('answer.unit', '"unit" must be text.');
+        err('answer.tolerance', msg('tolerance'));
+      else if (a.unit != null && typeof a.unit !== 'string') err('answer.unit', msg('unitText'));
       else {
         cleanAnswer = { value: a.value, ...(a.tolerance != null ? { tolerance: a.tolerance } : {}), ...(a.unit ? { unit: a.unit } : {}) };
-        if (a.tolerance == null) warnings.push({ row, id: idv, field: 'answer.tolerance', message: 'No tolerance given – 1% will be allowed.' });
+        if (a.tolerance == null) warnings.push({ row, id: idv, field: 'answer.tolerance', ...msg('noTolerance') });
       }
       break;
     }
     case 'text': {
       const list = typeof answer === 'string' ? [answer] : answer;
-      if (!isStrArr(list) || list.length === 0) err('answer', '"answer" must be a list of accepted answers.');
+      if (!isStrArr(list) || list.length === 0) err('answer', msg('textAnswer'));
       else cleanAnswer = list;
       break;
     }
     case 'order': {
-      if (!isStrArr(answer) || answer.length < 2) err('answer', 'Ordering needs "answer": at least 2 items in the correct order.');
-      else if (new Set(answer).size !== answer.length) err('answer', 'Ordering items must all be different.');
+      if (!isStrArr(answer) || answer.length < 2) err('answer', msg('orderAnswer'));
+      else if (new Set(answer).size !== answer.length) err('answer', msg('orderUnique'));
       break;
     }
     case 'match': {
@@ -134,12 +151,12 @@ export function validateQuestion(
         Array.isArray(answer) &&
         answer.length >= 2 &&
         answer.every((p) => Array.isArray(p) && p.length === 2 && isStr(p[0]) && isStr(p[1]));
-      if (!ok) err('answer', 'Matching needs "answer": at least 2 ["left", "right"] pairs.');
+      if (!ok) err('answer', msg('matchAnswer'));
       else {
         const lefts = (answer as string[][]).map((p) => p[0]);
         const rights = (answer as string[][]).map((p) => p[1]);
         if (new Set(lefts).size !== lefts.length || new Set(rights).size !== rights.length)
-          err('answer', 'Each left item and each right item in a match must be unique.');
+          err('answer', msg('matchUnique'));
       }
       break;
     }
@@ -165,12 +182,14 @@ export function validateQuestion(
 }
 
 /** Validate a whole bank. Bad questions are reported and skipped; good ones are kept. */
+export { msg as validationMessage };
+
 export function validateBank(raw: unknown, topics: TopicRef[]): ValidationResult {
   const errors: ValidationIssue[] = [];
   const warnings: ValidationIssue[] = [];
-  const fail = (message: string): ValidationResult => ({
+  const fail = (m: ReturnType<typeof msg>): ValidationResult => ({
     bank: null,
-    errors: [{ row: null, message }],
+    errors: [{ row: null, ...m }],
     warnings,
     validCount: 0,
     invalidCount: 0,
@@ -178,17 +197,20 @@ export function validateBank(raw: unknown, topics: TopicRef[]): ValidationResult
 
   // Accept a bare array of questions too (common when pasting from an AI).
   if (Array.isArray(raw)) raw = { questions: raw };
-  if (typeof raw !== 'object' || raw === null) return fail('The file is not a JSON object.');
+  if (typeof raw !== 'object' || raw === null) return fail(msg('notJsonObject'));
   const b = raw as Record<string, unknown>;
-  if (!Array.isArray(b.questions)) return fail('Missing "questions" list.');
+  if (!Array.isArray(b.questions)) return fail(msg('missingQuestions'));
 
   const name = isStr(b.name) ? b.name.trim() : 'Imported bank';
   let bankId = isStr(b.bankId) ? b.bankId.trim() : slugify(name);
   if (!ID_RE.test(bankId)) {
-    warnings.push({ row: null, field: 'bankId', message: `bankId "${bankId}" was cleaned up.` });
+    warnings.push({ row: null, field: 'bankId', ...msg('bankIdCleaned', bankId) });
     bankId = slugify(bankId) || 'imported';
   }
   const version = typeof b.version === 'number' ? b.version : 1;
+  let language: 'en' | 'ga' | undefined;
+  if (b.language === 'ga' || b.language === 'en') language = b.language;
+  else if (b.language != null) warnings.push({ row: null, field: 'language', ...msg('badLanguage') });
 
   const questions: Question[] = [];
   const seen = new Set<string>();
@@ -200,7 +222,7 @@ export function validateBank(raw: unknown, topics: TopicRef[]): ValidationResult
       return;
     }
     if (seen.has(res.question.id)) {
-      errors.push({ row: i + 1, id: res.question.id, field: 'id', message: `Duplicate id "${res.question.id}".` });
+      errors.push({ row: i + 1, id: res.question.id, field: 'id', ...msg('duplicateId', res.question.id) });
       return;
     }
     seen.add(res.question.id);
@@ -214,6 +236,7 @@ export function validateBank(raw: unknown, topics: TopicRef[]): ValidationResult
       version,
       ...(isStr(b.description) ? { description: b.description } : {}),
       ...(b.sample ? { sample: true } : {}),
+      ...(language ? { language } : {}),
       questions,
     },
     errors,

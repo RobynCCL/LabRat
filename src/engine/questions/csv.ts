@@ -1,6 +1,6 @@
 import Papa from 'papaparse';
 import type { Question } from './types';
-import { validateBank, type TopicRef, type ValidationResult } from './validate';
+import { validateBank, validationMessage, type TopicRef, type ValidationResult } from './validate';
 
 /**
  * CSV bank format (one question per row, header row required):
@@ -88,7 +88,7 @@ export function csvRowToQuestion(row: Record<string, string>): Record<string, un
 
 export function parseCsvBank(
   text: string,
-  meta: { bankId?: string; name: string },
+  meta: { bankId?: string; name: string; language?: 'en' | 'ga' },
   topics: TopicRef[],
 ): ValidationResult {
   const parsed = Papa.parse<Record<string, string>>(text.trim(), {
@@ -100,18 +100,18 @@ export function parseCsvBank(
   if (missing.length) {
     return {
       bank: null,
-      errors: [{ row: null, message: `CSV is missing column(s): ${missing.join(', ')}. Expected header: ${CSV_COLUMNS.join(',')}` }],
+      errors: [{ row: null, ...validationMessage('csvMissing', missing.join(', '), CSV_COLUMNS.join(',')) }],
       warnings: [],
       validCount: 0,
       invalidCount: 0,
     };
   }
   const res = validateBank(
-    { bankId: meta.bankId, name: meta.name, version: 1, questions: parsed.data.map(csvRowToQuestion) },
+    { bankId: meta.bankId, name: meta.name, version: 1, language: meta.language, questions: parsed.data.map(csvRowToQuestion) },
     topics,
   );
   for (const e of parsed.errors) {
-    res.warnings.push({ row: e.row != null ? e.row + 1 : null, message: `CSV: ${e.message}` });
+    res.warnings.push({ row: e.row != null ? e.row + 1 : null, ...validationMessage('csvParse', e.message) });
   }
   return res;
 }

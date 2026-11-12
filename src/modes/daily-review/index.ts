@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import type { GameMode } from '../types';
 import { useGame } from '@/store/game';
 import { dueCards, toDay } from '@/engine/srs/leitner';
+import { dictFor } from '@/i18n';
 
 const mode: GameMode = {
   id: 'daily-review',
@@ -14,7 +15,8 @@ const mode: GameMode = {
   component: lazy(() => import('./DailyReviewScreen')),
   useBadge: () => {
     const n = useGame((g) => dueCards(g.save.srs, toDay(), new Set(g.pool.map((q) => q.uid))).length);
-    return n ? `${n} due` : null;
+    const lang = useGame((g) => g.save.settings.language);
+    return n ? dictFor(lang).review.due(n) : null;
   },
 };
 

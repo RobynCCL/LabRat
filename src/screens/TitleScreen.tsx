@@ -5,6 +5,8 @@ import { useGame, useLevel } from '@/store/game';
 import { Avatar } from '@/components/Avatar';
 import { Button, Moles } from '@/components/ui';
 import { LogoMark } from '@/components/Logo';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { useI18n } from '@/i18n/useI18n';
 
 const FLOATERS = ['H₂O', 'NaCl', 'CO₂', 'CH₄', 'NH₃', 'H₂SO₄', 'C₆H₆', 'Fe³⁺', '⇌', 'mol'];
 
@@ -14,6 +16,7 @@ export default function TitleScreen() {
   const lvl = useLevel();
   const returning = save.stats.answered > 0 || save.stats.focusSessions > 0 || !!save.settings.name;
   const [name, setName] = useState(save.settings.name);
+  const { t } = useI18n();
 
   const go = () => {
     if (name.trim() !== save.settings.name) useGame.getState().updateSettings({ name: name.trim().slice(0, 24) });
@@ -22,6 +25,9 @@ export default function TitleScreen() {
 
   return (
     <div className="relative flex min-h-full flex-col items-center justify-center overflow-hidden px-4 py-10">
+      <div className="absolute right-4 top-4 z-10">
+        <LanguageToggle />
+      </div>
       {/* background */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgb(var(--primary)/0.18),transparent_60%),radial-gradient(ellipse_at_bottom_right,rgb(var(--accent)/0.15),transparent_55%)]" />
       <svg className="absolute inset-0 -z-10 h-full w-full opacity-[0.07]" aria-hidden>
@@ -55,17 +61,17 @@ export default function TitleScreen() {
             Lab<span className="text-primary">Rat</span>
           </h1>
         </div>
-        <p className="mt-3 max-w-md text-lg text-muted">Leaving Cert Chemistry revision. Earn Moles, level up and build the lab of your dreams.</p>
+        <p className="mt-3 max-w-md text-lg text-muted">{t.title.tagline}</p>
 
         <div className="mt-8 w-full max-w-sm">
           {returning ? (
             <div className="card p-5">
-              <p className="font-display text-xl">Welcome back{save.settings.name ? `, ${save.settings.name}` : ''}!</p>
+              <p className="font-display text-xl">{t.title.welcomeBack(save.settings.name)}</p>
               <p className="mt-1 flex items-center justify-center gap-3 text-sm text-muted">
-                <span>Level {lvl.level}</span>·<Moles amount={save.profile.moles} size={16} />
+                <span>{t.common.level(lvl.level)}</span>·<Moles amount={save.profile.moles} size={16} />
               </p>
               <Button size="lg" className="mt-4 w-full" icon="play" onClick={go} autoFocus>
-                Continue
+                {t.title.continue}
               </Button>
             </div>
           ) : (
@@ -77,13 +83,13 @@ export default function TitleScreen() {
               }}
             >
               <label className="label" htmlFor="name">
-                What should we call you?
+                {t.title.nameLabel}
               </label>
-              <input id="name" className="input h-11" placeholder="Your name (optional)" value={name} maxLength={24} onChange={(e) => setName(e.target.value)} autoFocus />
+              <input id="name" className="input h-11" placeholder={t.title.namePlaceholder} value={name} maxLength={24} onChange={(e) => setName(e.target.value)} autoFocus />
               <Button size="lg" className="mt-4 w-full" icon="play" type="submit">
-                Start revising
+                {t.title.start}
               </Button>
-              <p className="mt-3 text-center text-xs text-muted">No account needed. Progress saves on this device and works offline.</p>
+              <p className="mt-3 text-center text-xs text-muted">{t.title.noAccount}</p>
             </form>
           )}
         </div>

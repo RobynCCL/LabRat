@@ -27,6 +27,8 @@ export function createNewSave(now = Date.now()): SaveData {
     updatedAt: now,
     settings: {
       name: '',
+      language: typeof navigator !== 'undefined' && /^ga\b/i.test(navigator.language ?? '') ? 'ga' : 'en',
+      questionLanguage: 'auto',
       theme: 'system',
       muted: false,
       volume: 0.6,

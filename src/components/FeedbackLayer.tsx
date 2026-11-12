@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { on } from '@/lib/events';
 import { play } from '@/lib/sound';
 import { achievements } from '@/content/achievements';
+import { useI18n } from '@/i18n/useI18n';
 import { Icon, MoleCoin } from './ui';
 
 interface Float {
@@ -39,6 +40,9 @@ export function FeedbackLayer() {
   const [coins, setCoins] = useState<{ id: number; tx: number; ty: number; delay: number; sx: number }[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [level, setLevel] = useState<{ level: number; bonus: number } | null>(null);
+  const { t, c } = useI18n();
+  const tc = useRef({ t, c });
+  tc.current = { t, c };
 
   useEffect(() => {
     const offs = [
@@ -65,7 +69,8 @@ export function FeedbackLayer() {
         play('achievement');
         const def = achievements.find((x) => x.id === a.id);
         const id = ++seq;
-        setToasts((t) => [...t, { id, kind: 'achievement', title: a.name, body: `${def?.description ?? ''} +${a.reward} mol`, icon: def?.icon ?? 'trophy' }]);
+        const cc = tc.current.c;
+        setToasts((t) => [...t, { id, kind: 'achievement', title: def ? cc.achievementName(def) : a.name, body: `${def ? cc.achievementDesc(def) : ''} +${a.reward} mol`, icon: def?.icon ?? 'trophy' }]);
         setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4500);
       }),
       on('toast', (m) => {
@@ -129,10 +134,10 @@ export function FeedbackLayer() {
               ))}
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/20 font-display text-3xl font-semibold">{level.level}</div>
               <div>
-                <div className="font-display text-2xl font-semibold">Level up!</div>
-                <div className="text-sm opacity-90">You reached level {level.level} · +{level.bonus} mol bonus</div>
+                <div className="font-display text-2xl font-semibold">{t.feedback.levelUp}</div>
+                <div className="text-sm opacity-90">{t.feedback.reachedLevel(level.level, level.bonus)}</div>
               </div>
-              <button className="ml-2 rounded-lg p-1 hover:bg-white/15" aria-label="Dismiss" onClick={() => setLevel(null)}>
+              <button className="ml-2 rounded-lg p-1 hover:bg-white/15" aria-label={t.feedback.dismiss} onClick={() => setLevel(null)}>
                 <Icon name="x" size={18} />
               </button>
             </div>
@@ -156,7 +161,7 @@ export function FeedbackLayer() {
                 <Icon name={t.icon} size={22} />
               </span>
               <div className="min-w-0">
-                {t.kind === 'achievement' && <div className="text-[11px] font-extrabold uppercase tracking-wide text-legendary">Achievement unlocked</div>}
+                {t.kind === 'achievement' && <div className="text-[11px] font-extrabold uppercase tracking-wide text-legendary">{tc.current.t.feedback.achievementUnlocked}</div>}
                 <div className="font-semibold">{t.title}</div>
                 {t.body && <div className="text-sm text-muted">{t.body}</div>}
               </div>

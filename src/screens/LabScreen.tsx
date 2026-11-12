@@ -11,11 +11,12 @@ import { RoomView, T, PAD, floorTop, metaFor, wallRect, isStanding } from '@/com
 import { usePetWander } from '@/components/lab/usePetWander';
 import { PetsPanel } from '@/components/lab/PetsPanel';
 import { ItemPreview } from '@/components/ItemPreview';
-import { Button, Card, EmptyState, Icon, IconButton, Kbd, Modal, Moles, PageHeader, Segmented } from '@/components/ui';
+import { Button, Card, EmptyState, Icon, IconButton, Kbd, Modal, PageHeader, Segmented } from '@/components/ui';
 import { exportSvgToPng } from '@/lib/exportPng';
 import { play } from '@/lib/sound';
 import { toast } from '@/lib/events';
 import { useReducedMotion } from '@/App';
+import { useI18n } from '@/i18n/useI18n';
 
 interface Drag {
   uid: string;
@@ -31,6 +32,7 @@ export default function LabScreen() {
   const level = useLevel().level;
   const store = useGame.getState();
   const reduce = useReducedMotion();
+  const { t, c } = useI18n();
   const roomId = save.lab.current;
   const roomDef = economy.rooms.find((r) => r.id === roomId) ?? economy.rooms[0];
   const room = save.lab.rooms[roomId];
@@ -50,7 +52,7 @@ export default function LabScreen() {
   const [bubble, setBubble] = useState<{ uid: string; text: string; key: number } | null>(null);
   const [renaming, setRenaming] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
-  const roomName = room.name || roomDef.name;
+  const roomName = room.name || c.room(roomDef);
 
   const pets = usePetWander(roomId, size, room, save.inventory, !reduce && !exporting, bubble?.uid);
 
@@ -60,7 +62,8 @@ export default function LabScreen() {
     const item = getItem(own?.itemId ?? '');
     if (!own || !item?.pet) return;
     const sayings = item.pet.sayings;
-    const text = `${own.name ?? item.name}\n${sayings[Math.floor(Math.random() * sayings.length)]}`;
+    const lines = c.sayings(item);
+    const text = `${own.name ?? c.itemName(item)}\n${lines[Math.floor(Math.random() * lines.length)] ?? sayings[0]}`;
     setBubble({ uid, text, key: Date.now() });
     store.patPet(uid);
     play('correct');
@@ -76,7 +79,7 @@ export default function LabScreen() {
       : {
           role: 'button',
           tabIndex: 0,
-          'aria-label': `Pat ${inv.get(uid)?.name ?? 'pet'}`,
+          'aria-label': t.pets.pat(inv.get(uid)?.name ?? ''),
           style: { cursor: 'pointer', outline: 'none' },
           onClick: () => patPet(uid),
           onKeyDown: (e) => {
@@ -186,7 +189,7 @@ export default function LabScreen() {
       play('place');
     } else {
       play('error');
-      toast('No room to rotate here. Move it first.');
+      toast(t.lab.noRotate);
     }
   };
   const flip = () => {
@@ -206,7 +209,7 @@ export default function LabScreen() {
     store.setPlaced(roomId, removeItem(room.placed, selling, meta).placed);
     const refund = store.sell(selling);
     play('coin');
-    toast(`Sold for ${refund} mol`, 'good');
+    toast(t.lab.sold(refund), 'good');
     setSelling(null);
     setSelected(null);
   };
@@ -216,7 +219,7 @@ export default function LabScreen() {
     const spot = findSpot(size, room.placed, uid, meta);
     if (!spot) {
       play('error');
-      toast(m.layer === 'tabletop' ? 'No free bench space. Bench-top items need a bench to sit on.' : m.layer === 'wall' ? 'The wall is full. Store or move something first.' : 'No free floor space for that. Try moving things around.', 'bad');
+      toast(m.layer === 'tabletop' ? t.lab.noBench : m.layer === 'wall' ? t.lab.wallFull : t.lab.noFloor, 'bad');
       return;
     }
     commit([...room.placed, spot]);
@@ -277,7 +280,7 @@ export default function LabScreen() {
       ? {
           tabIndex: 0,
           role: 'button',
-          'aria-label': `${getItem(inv.get(uid)?.itemId ?? '')?.name ?? 'Item'}${selected === uid ? ' (selected – arrows move, R rotates, Delete stores)' : ''}`,
+          'aria-label': `${(() => { const it = getItem(inv.get(uid)?.itemId ?? ''); return it ? c.itemName(it) : t.lab.item; })()}${selected === uid ? t.lab.selectedHint : ''}`,
           style: { cursor: drag ? 'grabbing' : 'grab', outline: 'none' },
           onPointerDown: (e) => startDrag(uid, e, false),
           onFocus: () => setSelected(uid),
@@ -292,7 +295,7 @@ export default function LabScreen() {
         ? {
             role: 'button',
             tabIndex: 0,
-            'aria-label': `Say hello to ${inv.get(uid)?.name}`,
+            'aria-label': t.pets.sayHello(inv.get(uid)?.name ?? ''),
             style: { cursor: 'pointer', outline: 'none' },
             onClick: () => patPet(uid),
             onKeyDown: (e) => {
@@ -320,7 +323,7 @@ export default function LabScreen() {
           <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={8} fill={preview.valid ? 'rgb(var(--good) / 0.18)' : 'rgb(var(--bad) / 0.22)'} stroke={preview.valid ? 'rgb(var(--good))' : 'rgb(var(--bad))'} strokeWidth={3} strokeDasharray={preview.valid ? '0' : '6 4'} />
           {!preview.valid && (
             <text x={r.x + r.w / 2} y={r.y + r.h / 2 + 5} textAnchor="middle" fontSize={14} fontWeight={800} fill="rgb(var(--bad))">
-              {placementProblem(size, room.placed, preview.cand, meta) === 'needs-surface' ? 'Needs a bench' : '✕'}
+              {placementProblem(size, room.placed, preview.cand, meta) === 'needs-surface' ? t.lab.needsBench : '✕'}
             </text>
           )}
         </g>
@@ -335,15 +338,16 @@ export default function LabScreen() {
     await new Promise((r) => setTimeout(r, 60));
     try {
       await exportSvgToPng(svgRef.current, {
-        title: room.name ? room.name : `${save.settings.name ? save.settings.name + '’s' : 'My'} ${roomDef.name}`,
-        subtitle: `Level ${level} · ${room.placed.length} items${pets.length ? ` · ${pets.map((p) => p.name).join(', ')}` : ''}`,
+        title: room.name ? room.name : t.lab.exportTitle(save.settings.name, c.room(roomDef)),
+        subtitle: `${t.lab.exportSubtitle(level, room.placed.length)}${pets.length ? ` · ${pets.map((p) => p.name).join(', ')}` : ''}`,
+        footer: t.lab.madeIn,
         filename: `lab-rat-${roomDef.id}.png`,
         dark: document.documentElement.dataset.theme === 'dark',
       });
-      toast('Lab picture saved!', 'good');
+      toast(t.lab.pictureSaved, 'good');
     } catch (e) {
       console.error(e);
-      toast('Sorry, the picture could not be created.', 'bad');
+      toast(t.lab.pictureFailed, 'bad');
     }
     setExporting(false);
   };
@@ -353,22 +357,22 @@ export default function LabScreen() {
       <PageHeader
         title={roomName}
         icon="flask"
-        subtitle={decorate ? 'Decorate mode: drag items to move them, or use the keyboard.' : 'Your personal laboratory. Earn Moles to fill it with kit.'}
+        subtitle={decorate ? t.lab.subtitleDecorate : t.lab.subtitle}
         actions={
           <>
             {!decorate && (
-              <Button variant="ghost" icon="pencil" onClick={() => setRenaming(true)} aria-label="Rename this room">
-                Rename
+              <Button variant="ghost" icon="pencil" onClick={() => setRenaming(true)} aria-label={t.lab.renameAria}>
+                {t.lab.rename}
               </Button>
             )}
             {!decorate && (
               <Button variant="secondary" icon="image" onClick={exportPng} disabled={exporting}>
-                {exporting ? 'Saving…' : 'Show off (PNG)'}
+                {exporting ? t.lab.saving : t.lab.showOff}
               </Button>
             )}
             {decorate && (
-              <Button variant="secondary" icon="undo" onClick={doUndo} disabled={!undo.length} title="Undo (Ctrl+Z)">
-                Undo
+              <Button variant="secondary" icon="undo" onClick={doUndo} disabled={!undo.length} title={t.lab.undoTitle}>
+                {t.lab.undo}
               </Button>
             )}
             <Button
@@ -380,7 +384,7 @@ export default function LabScreen() {
                 setUndo([]);
               }}
             >
-              {decorate ? 'Done' : 'Decorate'}
+              {decorate ? t.common.done : t.lab.decorate}
             </Button>
           </>
         }
@@ -408,7 +412,7 @@ export default function LabScreen() {
                 petProps={petProps}
                 bubble={bubble}
                 className={`mx-auto block h-auto w-full select-none ${decorate ? "touch-none" : ""}`}
-                title={`${roomName}, ${room.placed.length} items, ${pets.length} pets`}
+                title={t.lab.roomAria(roomName, room.placed.length, pets.length)}
               />
             </div>
           </Card>
@@ -418,57 +422,64 @@ export default function LabScreen() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="card mt-3 flex flex-wrap items-center gap-2 p-2.5">
                 <ItemPreview item={selItem} variant={inv.get(selected)!.variant} size={40} />
                 <div className="mr-auto min-w-0">
-                  <div className="truncate font-semibold">{selItem.name}</div>
+                  <div className="truncate font-semibold">{inv.get(selected)?.name ?? c.itemName(selItem)}</div>
                   <div className="hidden text-xs text-muted sm:block">
-                    <Kbd>←↑↓→</Kbd> move · {isStanding(selItem) ? <><Kbd>F</Kbd> flip · </> : selItem.rotatable && <><Kbd>R</Kbd> rotate · </>}
-                    <Kbd>Del</Kbd> store · <Kbd>Ctrl Z</Kbd> undo
+                    <Kbd>←↑↓→</Kbd> {t.lab.keys.move} · {isStanding(selItem) ? <><Kbd>F</Kbd> {t.lab.keys.flip} · </> : selItem.rotatable && <><Kbd>R</Kbd> {t.lab.keys.rotate} · </>}
+                    <Kbd>Del</Kbd> {t.lab.keys.store} · <Kbd>Ctrl Z</Kbd> {t.lab.keys.undo}
                   </div>
                 </div>
                 <div className="flex gap-0.5 sm:hidden">
-                  <IconButton icon="chevron-left" label="Move left" onClick={() => nudge(-1, 0)} />
-                  <IconButton icon="arrow-up" label="Move up" onClick={() => nudge(0, -1)} />
-                  <IconButton icon="arrow-down" label="Move down" onClick={() => nudge(0, 1)} />
-                  <IconButton icon="chevron-right" label="Move right" onClick={() => nudge(1, 0)} />
+                  <IconButton icon="chevron-left" label={t.lab.moveLeft} onClick={() => nudge(-1, 0)} />
+                  <IconButton icon="arrow-up" label={t.lab.moveUp} onClick={() => nudge(0, -1)} />
+                  <IconButton icon="arrow-down" label={t.lab.moveDown} onClick={() => nudge(0, 1)} />
+                  <IconButton icon="chevron-right" label={t.lab.moveRight} onClick={() => nudge(1, 0)} />
                 </div>
                 {isStanding(selItem) ? (
                   <Button size="sm" variant="secondary" icon="flip" onClick={flip}>
-                    Flip
+                    {t.lab.flip}
                   </Button>
                 ) : (
                   selItem.rotatable && (
                     <Button size="sm" variant="secondary" icon="rotate" onClick={rotate}>
-                      Rotate
+                      {t.lab.rotate}
                     </Button>
                   )
                 )}
                 <Button size="sm" variant="secondary" icon="box" onClick={() => putAway()}>
-                  Store
+                  {t.lab.store}
                 </Button>
                 {!selItem.pet && (
                   <Button size="sm" variant="secondary" icon="coin" onClick={() => setSelling(selected)}>
-                    Sell
+                    {t.lab.sell}
                   </Button>
                 )}
-                <IconButton icon="x" label="Deselect" onClick={() => setSelected(null)} />
+                <IconButton icon="x" label={t.lab.deselect} onClick={() => setSelected(null)} />
               </motion.div>
             )}
           </AnimatePresence>
           {!decorate && <PetsPanel roomId={roomId} onSayHello={patPet} />}
           {!decorate && room.placed.length < 3 && (
             <p className="mt-3 text-sm text-muted">
-              Tip: visit the <Link to="/shop" className="font-semibold text-primary underline">Shop</Link> to buy furniture, then press <b>Decorate</b> to arrange it.
+              {t.lab.tipBefore}
+              <Link to="/shop" className="font-semibold text-primary underline">
+                {t.lab.tipShop}
+              </Link>
+              {t.lab.tipAfter}
             </p>
           )}
         </div>
 
         {decorate && (
           <aside className="grid content-start gap-3">
-            <Segmented label="Panel" value={panel} onChange={setPanel} options={[{ value: 'storage', label: `Storage (${storage.reduce((n, g) => n + g.uids.length, 0)})` }, { value: 'style', label: 'Room style' }]} />
+            <Segmented label={t.lab.panel} value={panel} onChange={setPanel} options={[{ value: 'storage', label: t.lab.storage(storage.reduce((n, g) => n + g.uids.length, 0)) }, { value: 'style', label: t.lab.roomStyle }]} />
             {panel === 'storage' ? (
               <Card className="max-h-[32rem] overflow-y-auto p-2 scrollbar-thin">
                 {storage.length === 0 ? (
-                  <EmptyState icon="box" title="Storage is empty">
-                    Everything you own is on display. <Link to="/shop" className="font-semibold text-primary underline">Buy more in the Shop</Link>.
+                  <EmptyState icon="box" title={t.lab.storageEmpty}>
+                    {t.lab.storageEmptyBefore}
+                    <Link to="/shop" className="font-semibold text-primary underline">
+                      {t.lab.storageEmptyLink}
+                    </Link>
                   </EmptyState>
                 ) : (
                   <ul className="grid gap-1">
@@ -477,17 +488,17 @@ export default function LabScreen() {
                       const v = item.variants.find((x) => x.id === g.variant);
                       return (
                         <li key={g.itemId + g.variant} className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-surface-2">
-                          <div className="cursor-grab touch-none rounded-lg bg-surface-2 p-0.5" onPointerDown={(e) => startDrag(g.uids[0], e, true)} title="Drag into your lab">
+                          <div className="cursor-grab touch-none rounded-lg bg-surface-2 p-0.5" onPointerDown={(e) => startDrag(g.uids[0], e, true)} title={t.lab.dragHint}>
                             <ItemPreview item={item} variant={g.variant} size={44} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-semibold">{g.name ?? item.name}</div>
+                            <div className="truncate text-sm font-semibold">{g.name ?? c.itemName(item)}</div>
                             <div className="truncate text-xs text-muted">
-                              {v?.name} {g.uids.length > 1 && <>· ×{g.uids.length}</>}
+                              {v && c.variantName(item, v.id)} {g.uids.length > 1 && <>· ×{g.uids.length}</>}
                             </div>
                           </div>
                           <Button size="sm" variant="secondary" onClick={() => placeFromStorage(g.uids[0])}>
-                            Place
+                            {t.lab.place}
                           </Button>
                         </li>
                       );
@@ -502,19 +513,19 @@ export default function LabScreen() {
         )}
       </div>
 
-      <RenameRoom open={renaming} onClose={() => setRenaming(false)} roomId={roomId} current={room.name ?? ''} fallback={roomDef.name} />
+      <RenameRoom open={renaming} onClose={() => setRenaming(false)} roomId={roomId} current={room.name ?? ''} fallback={c.room(roomDef)} />
 
       <Modal
         open={!!selling}
         onClose={() => setSelling(null)}
-        title="Sell item?"
+        title={t.lab.sellTitle}
         footer={
           <>
             <Button variant="secondary" onClick={() => setSelling(null)}>
-              Keep it
+              {t.lab.keepIt}
             </Button>
             <Button variant="danger" icon="coin" onClick={confirmSell}>
-              Sell
+              {t.lab.sell}
             </Button>
           </>
         }
@@ -524,9 +535,7 @@ export default function LabScreen() {
           return it ? (
             <div className="flex items-center gap-4">
               <ItemPreview item={it} variant={inv.get(selling)!.variant} size={72} />
-              <p>
-                Sell <b>{it.name}</b> for <Moles amount={sellPrice(it.price)} /> ({Math.round(economy.sellRefund * 100)}% of its price)? Anything sitting on it goes back to storage. You can undo this.
-              </p>
+              <p>{t.lab.sellBody(c.itemName(it), sellPrice(it.price), Math.round(economy.sellRefund * 100))}</p>
             </div>
           ) : null;
         })()}
@@ -538,6 +547,7 @@ export default function LabScreen() {
 function RoomTabs({ level }: { level: number }) {
   const save = useGame((g) => g.save);
   const { setCurrentRoom, unlockRoom } = useGame.getState();
+  const { t, c } = useI18n();
   const [confirm, setConfirm] = useState<string | null>(null);
   const target = economy.rooms.find((r) => r.id === confirm);
   return (
@@ -552,23 +562,23 @@ function RoomTabs({ level }: { level: number }) {
             className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-semibold transition ${active ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-surface hover:border-primary/40'}`}
           >
             <Icon name={unlocked ? 'door' : 'lock'} size={16} />
-            {save.lab.rooms[r.id]?.name || r.name}
+            {save.lab.rooms[r.id]?.name || c.room(r)}
             <span className="text-xs font-normal text-muted">
               {r.cols}×{r.rows}
             </span>
-            {!unlocked && <span className="chip">Lv {r.unlockLevel}</span>}
+            {!unlocked && <span className="chip">{t.common.lv(r.unlockLevel)}</span>}
           </button>
         );
       })}
       <Modal
         open={!!target}
         onClose={() => setConfirm(null)}
-        title={target ? `Unlock the ${target.name}` : ''}
+        title={target ? t.lab.unlockTitle(c.room(target)) : ''}
         footer={
           target && (
             <>
               <Button variant="secondary" onClick={() => setConfirm(null)}>
-                Not yet
+                {t.lab.notYet}
               </Button>
               <Button
                 icon="door"
@@ -577,12 +587,12 @@ function RoomTabs({ level }: { level: number }) {
                   const r = unlockRoom(target.id);
                   if (r.ok) {
                     play('buy');
-                    toast(`Welcome to the ${target.name}!`, 'good');
+                    toast(t.lab.welcomeRoom(c.room(target)), 'good');
                     setConfirm(null);
-                  } else toast(r.reason ?? 'Cannot unlock yet', 'bad');
+                  } else toast(r.reason ?? t.lab.cannotUnlock, 'bad');
                 }}
               >
-                Unlock for {target.price} mol
+                {t.lab.unlockFor(target.price)}
               </Button>
             </>
           )
@@ -590,12 +600,8 @@ function RoomTabs({ level }: { level: number }) {
       >
         {target && (
           <div className="grid gap-2">
-            <p>
-              A bigger space ({target.cols}×{target.rows} tiles) for your growing collection. It has its own layout and style; items in storage can go in either room.
-            </p>
-            <p className="text-sm">
-              Requires <b>level {target.unlockLevel}</b> (you're level {level}) and <Moles amount={target.price} /> (you have <Moles amount={save.profile.moles} />).
-            </p>
+            <p>{t.lab.unlockBody(target.cols, target.rows)}</p>
+            <p className="text-sm">{t.lab.unlockNeeds(target.unlockLevel, level, target.price, save.profile.moles)}</p>
           </div>
         )}
       </Modal>
@@ -607,10 +613,11 @@ function StylePanel() {
   const save = useGame((g) => g.save);
   const room = save.lab.rooms[save.lab.current];
   const { equip } = useGame.getState();
+  const { t, c } = useI18n();
   const slots: { slot: 'floor' | 'wall' | 'lighting'; label: string }[] = [
-    { slot: 'floor', label: 'Floor' },
-    { slot: 'wall', label: 'Walls' },
-    { slot: 'lighting', label: 'Lighting' },
+    { slot: 'floor', label: t.lab.floor },
+    { slot: 'wall', label: t.lab.walls },
+    { slot: 'lighting', label: t.lab.lighting },
   ];
   return (
     <Card className="grid gap-4 p-3">
@@ -626,8 +633,8 @@ function StylePanel() {
                 return (
                   <button
                     key={i.id + v.id}
-                    title={`${i.name} – ${v.name}`}
-                    aria-label={`${i.name} – ${v.name}`}
+                    title={`${c.itemName(i)} – ${c.variantName(i, v.id)}`}
+                    aria-label={`${c.itemName(i)} – ${c.variantName(i, v.id)}`}
                     aria-pressed={active}
                     onClick={() => {
                       equip(slot, { itemId: i.id, variant: v.id });
@@ -644,7 +651,11 @@ function StylePanel() {
         );
       })}
       <p className="text-xs text-muted">
-        More styles in the <Link to="/shop" className="font-semibold text-primary underline">Shop</Link> under Structure.
+        {t.lab.moreStylesBefore}
+        <Link to="/shop?tab=structure" className="font-semibold text-primary underline">
+          {t.nav.shop}
+        </Link>
+        {t.lab.moreStylesAfter}
       </p>
     </Card>
   );
@@ -652,6 +663,7 @@ function StylePanel() {
 
 function RenameRoom({ open, onClose, roomId, current, fallback }: { open: boolean; onClose: () => void; roomId: string; current: string; fallback: string }) {
   const [name, setName] = useState(current);
+  const { t } = useI18n();
   useEffect(() => {
     if (open) setName(current);
   }, [open, current]);
@@ -663,23 +675,23 @@ function RenameRoom({ open, onClose, roomId, current, fallback }: { open: boolea
     <Modal
       open={open}
       onClose={onClose}
-      title="Name this room"
+      title={t.lab.nameRoom}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button icon="check" onClick={save}>
-            Save
+            {t.common.save}
           </Button>
         </>
       }
     >
       <label className="block">
-        <span className="label">Room name</span>
+        <span className="label">{t.lab.roomName}</span>
         <input className="input" maxLength={28} value={name} placeholder={fallback} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && save()} />
       </label>
-      <p className="mt-2 text-sm text-muted">Leave it blank to use “{fallback}”. Ideas: The Mole Hole, Fizz HQ, Avogadro’s Den.</p>
+      <p className="mt-2 text-sm text-muted">{t.lab.roomNameHelp(fallback)}</p>
     </Modal>
   );
 }

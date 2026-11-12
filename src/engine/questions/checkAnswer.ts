@@ -1,4 +1,5 @@
 import { plainChem } from './formatChem';
+import { stripAccents } from '@/i18n';
 import type { CheckResult, Question, Response } from './types';
 
 /**
@@ -22,7 +23,8 @@ export function parseNumber(raw: string): number | null {
 
 /** Normalise free text for comparison. */
 export function normaliseText(s: string, caseSensitive = false): string {
-  let t = plainChem(s)
+  // Accents (e.g. Irish fadas) are ignored so "eatanol" matches "eatánól".
+  let t = stripAccents(plainChem(s))
     .normalize('NFKC')
     .replace(/[‘’`]/g, "'")
     .replace(/[“”]/g, '"')
@@ -55,16 +57,16 @@ export function checkAnswer(q: Question, r: Response): CheckResult {
     }
     case 'numeric': {
       const v = parseNumber((r as Extract<Response, { type: 'numeric' }>).value);
-      if (v === null) return { correct: false, score: 0, note: 'That doesn’t look like a number.' };
+      if (v === null) return { correct: false, score: 0, note: 'notNumber' };
       const tol = numericTolerance(q.answer.value, q.answer.tolerance);
       const diff = Math.abs(v - q.answer.value);
       // Float-safe comparison
       const ok = diff <= tol + 1e-9 * Math.max(1, Math.abs(q.answer.value));
       if (ok) return score(true);
-      if (diff <= tol * 5) return { correct: false, score: 0, note: 'Close, but outside the allowed tolerance. Check your rounding.' };
+      if (diff <= tol * 5) return { correct: false, score: 0, note: 'close' };
       const ratio = v / q.answer.value;
       if (q.answer.value !== 0 && [10, 100, 1000, 0.1, 0.01, 0.001].some((k) => Math.abs(ratio - k) < 0.01 * k))
-        return { correct: false, score: 0, note: 'Out by a power of ten. Check your unit conversions (e.g. cm³ → L).' };
+        return { correct: false, score: 0, note: 'powerOfTen' };
       return score(false);
     }
     case 'text': {

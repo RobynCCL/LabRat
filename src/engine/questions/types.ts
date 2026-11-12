@@ -85,6 +85,8 @@ export interface QuestionBank {
   description?: string;
   /** Marks built-in sample content so it is easy to spot and disable. */
   sample?: boolean;
+  /** Language of the questions: 'en' (default) or 'ga' (Irish). */
+  language?: 'en' | 'ga';
   questions: Question[];
 }
 
@@ -104,8 +106,8 @@ export interface CheckResult {
   correct: boolean;
   /** 0–1 share of the answer that was right (for multi, order, match). */
   score: number;
-  /** Optional hint about what went wrong (e.g. close but outside tolerance). */
-  note?: string;
+  /** Optional hint about what went wrong – a key into the question.notes text. */
+  note?: 'notNumber' | 'close' | 'powerOfTen';
 }
 
 export const QUESTION_TYPES: { id: QuestionType; label: string }[] = [

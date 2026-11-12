@@ -13,6 +13,7 @@ import { emit } from '@/lib/events';
 import { newId } from '@/lib/id';
 import { buildPool, topicIndex } from '@/lib/questionPool';
 import { cleanName } from '@/lib/pets';
+import { dictFor, questionLangs } from '@/i18n';
 import { createNewSave, emptyRoom } from './defaults';
 import { migrate } from './migrations';
 import { clearRaw, loadRaw, saveRaw } from './persistence';
@@ -110,7 +111,8 @@ function scheduleSave(data: SaveData) {
 
 export const useGame = create<GameStore>((set, get) => {
   const initial = createNewSave();
-  const pool0 = buildPool(initial.banks.user, initial.banks.disabled);
+  const poolFor = (s: SaveData) => buildPool(s.banks.user, s.banks.disabled, questionLangs(s.settings));
+  const pool0 = poolFor(initial);
 
   /** Single commit path: apply recipe, then level-ups + achievements, then emit events and autosave. */
   function commit(recipe: (d: SaveData, events: (() => void)[]) => void) {
@@ -121,8 +123,12 @@ export const useGame = create<GameStore>((set, get) => {
       d.updatedAt = Date.now();
     });
     let { pool, index } = get();
-    if (next.banks !== prev.banks) {
-      pool = buildPool(next.banks.user, next.banks.disabled);
+    if (
+      next.banks !== prev.banks ||
+      next.settings.language !== prev.settings.language ||
+      next.settings.questionLanguage !== prev.settings.questionLanguage
+    ) {
+      pool = poolFor(next);
       index = topicIndex(pool);
     }
     // Achievements (loop because an achievement reward could trigger another).
@@ -158,7 +164,7 @@ export const useGame = create<GameStore>((set, get) => {
         console.error('[Lab Rat] Could not load save, starting fresh.', e);
         save = createNewSave();
       }
-      const pool = buildPool(save.banks.user, save.banks.disabled);
+      const pool = poolFor(save);
       set({ save, pool, index: topicIndex(pool), ready: true });
       if (typeof window !== 'undefined') {
         const flush = () => void saveRaw(get().save);
@@ -206,7 +212,8 @@ export const useGame = create<GameStore>((set, get) => {
         d.stats.quizzesCompleted++;
         if (total > 0 && correct === total) d.stats.perfectQuizzes++;
         grantInto(d, reward, ev);
-        if (reward.moles || reward.xp) ev.unshift(() => emit('reward', { ...reward, label: 'Quiz complete' }));
+        const label = dictFor(d.settings.language).feedback.quizComplete;
+        if (reward.moles || reward.xp) ev.unshift(() => emit('reward', { ...reward, label }));
       });
     },
 
@@ -220,7 +227,8 @@ export const useGame = create<GameStore>((set, get) => {
         }
         bumpDaily(d, (e) => (e.minutes += minutes));
         grantInto(d, reward, ev);
-        ev.unshift(() => emit('reward', { ...reward, label: 'Focus session complete' }));
+        const label = dictFor(d.settings.language).feedback.focusComplete;
+        ev.unshift(() => emit('reward', { ...reward, label }));
       });
     },
 
@@ -246,11 +254,12 @@ export const useGame = create<GameStore>((set, get) => {
     buy(itemId, variant, opts) {
       const save = get().save;
       const item = getItem(itemId);
-      if (!item || !item.variants.some((v) => v.id === variant)) return { ok: false, reason: 'Unknown item.' };
+      const R = dictFor(save.settings.language).shop.reasons;
+      if (!item || !item.variants.some((v) => v.id === variant)) return { ok: false, reason: R.unknown };
       const level = levelFromXp(save.profile.xp).level;
-      if (item.unlockLevel && level < item.unlockLevel) return { ok: false, reason: `Unlocks at level ${item.unlockLevel}.` };
-      if (item.kind === 'applied' && ownsApplied(save, item, variant)) return { ok: false, reason: 'You already own this.' };
-      if (save.profile.moles < item.price) return { ok: false, reason: 'Not enough Moles.' };
+      if (item.unlockLevel && level < item.unlockLevel) return { ok: false, reason: R.level(item.unlockLevel) };
+      if (item.kind === 'applied' && ownsApplied(save, item, variant)) return { ok: false, reason: R.owned };
+      if (save.profile.moles < item.price) return { ok: false, reason: R.moles };
       const uid = newId('i');
       commit((d) => {
         d.profile.moles -= item.price;
@@ -309,7 +318,7 @@ export const useGame = create<GameStore>((set, get) => {
           o.lastPatDay = today;
           bonus = economy.dailyPatMoles;
           grantInto(d, { moles: bonus, xp: 0 }, ev);
-          const label = `${o.name ?? 'Your pet'} is happy!`; // read now: the draft is revoked after commit
+          const label = dictFor(d.settings.language).feedback.petHappy(o.name ?? '🐾'); // read now: the draft is revoked after commit
           ev.unshift(() => emit('reward', { moles: bonus, xp: 0, label }));
         }
       });
@@ -361,10 +370,11 @@ export const useGame = create<GameStore>((set, get) => {
     unlockRoom(roomId) {
       const save = get().save;
       const room = economy.rooms.find((r) => r.id === roomId);
-      if (!room) return { ok: false, reason: 'Unknown room.' };
+      const R = dictFor(save.settings.language).shop.reasons;
+      if (!room) return { ok: false, reason: R.unknown };
       if (save.lab.unlockedRooms.includes(roomId)) return { ok: true };
-      if (levelFromXp(save.profile.xp).level < room.unlockLevel) return { ok: false, reason: `Reach level ${room.unlockLevel} first.` };
-      if (save.profile.moles < room.price) return { ok: false, reason: 'Not enough Moles.' };
+      if (levelFromXp(save.profile.xp).level < room.unlockLevel) return { ok: false, reason: R.level(room.unlockLevel) };
+      if (save.profile.moles < room.price) return { ok: false, reason: R.moles };
       commit((d) => {
         d.profile.moles -= room.price;
         d.lab.unlockedRooms.push(roomId);
@@ -442,7 +452,7 @@ export const useGame = create<GameStore>((set, get) => {
       const save = migrate(raw);
       delete (save as unknown as Record<string, unknown>).app;
       delete (save as unknown as Record<string, unknown>).exportedAt;
-      const pool = buildPool(save.banks.user, save.banks.disabled);
+      const pool = poolFor(save);
       set({ save, pool, index: topicIndex(pool) });
       void saveRaw(save);
     },
@@ -450,7 +460,8 @@ export const useGame = create<GameStore>((set, get) => {
     async resetSave() {
       await clearRaw();
       const save = createNewSave();
-      const pool = buildPool(save.banks.user, save.banks.disabled);
+      save.settings.language = get().save.settings.language; // keep the chosen language
+      const pool = poolFor(save);
       set({ save, pool, index: topicIndex(pool) });
       await saveRaw(save);
     },

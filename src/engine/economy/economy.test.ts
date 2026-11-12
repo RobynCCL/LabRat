@@ -46,7 +46,7 @@ describe('rewards', () => {
   });
 
   it('completion bonus uses accuracy bands and long-quiz multiplier', () => {
-    expect(quizCompletionReward(10, 10).label).toBe('Perfect run!');
+    expect(quizCompletionReward(10, 10).label).toBe('perfect');
     expect(quizCompletionReward(8, 10).moles).toBe(20);
     expect(quizCompletionReward(0, 10).moles).toBe(0);
     expect(quizCompletionReward(20, 20).moles).toBe(Math.round(40 * economy.quiz.longQuizMultiplier));

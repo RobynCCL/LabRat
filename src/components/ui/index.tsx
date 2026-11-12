@@ -6,6 +6,7 @@ import { topicById } from '@/content/topics';
 import type { Rarity } from '@/content/shop/types';
 import { formatChem } from '@/engine/questions/formatChem';
 import { play } from '@/lib/sound';
+import { useI18n } from '@/i18n/useI18n';
 
 export { Icon };
 
@@ -147,6 +148,7 @@ export function Segmented<T extends string | number>({ value, options, onChange,
 /* ───────── Modal ───────── */
 export function Modal({ open, onClose, title, children, wide, footer }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean; footer?: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -192,7 +194,7 @@ export function Modal({ open, onClose, title, children, wide, footer }: { open: 
           >
             <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-3">
               <h2 className="text-lg font-semibold">{title}</h2>
-              <IconButton icon="x" label="Close" onClick={onClose} />
+              <IconButton icon="x" label={t.ui.close} onClick={onClose} />
             </div>
             <div className="overflow-y-auto px-5 py-4">{children}</div>
             {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-3">{footer}</div>}
@@ -241,11 +243,12 @@ export function MoleCoin({ size = 20, className = '' }: { size?: number; classNa
 }
 
 export function Moles({ amount, size = 18, className = '' }: { amount: number; size?: number; className?: string }) {
+  const { t } = useI18n();
   return (
     <span className={`inline-flex items-center gap-1 font-bold num ${className}`}>
       <MoleCoin size={size} />
       {amount.toLocaleString('en-IE')}
-      <span className="sr-only">Moles</span>
+      <span className="sr-only">{t.common.moles}</span>
     </span>
   );
 }
@@ -258,7 +261,8 @@ const RARITY_CLASS: Record<Rarity, string> = {
   legendary: 'bg-legendary/15 text-legendary',
 };
 export function RarityTag({ rarity }: { rarity: Rarity }) {
-  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-wide ${RARITY_CLASS[rarity]}`}>{rarity}</span>;
+  const { c } = useI18n();
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-wide ${RARITY_CLASS[rarity]}`}>{c.rarity(rarity)}</span>;
 }
 
 export function Kbd({ children }: { children: ReactNode }) {

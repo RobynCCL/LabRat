@@ -4,6 +4,7 @@ A browser game for revising **Irish Leaving Certificate Chemistry**. Answer ques
 
 - Fully client-side: no account, no backend. Progress autosaves in the browser (IndexedDB) and can be exported or imported as JSON.
 - Works offline as an installable PWA.
+- **English and Gaeilge:** switch language on the title screen or in Settings. Irish question banks are supported, and an Irish sample bank is included.
 - Light and dark themes, keyboard-friendly, colour-blind-safe feedback, mute and reduced-motion settings.
 - All art is drawn in code (SVG), and all content lives in data files.
 

@@ -26,6 +26,8 @@ export interface BankEntry {
   enabled: boolean;
 }
 
+export const bankLanguage = (b: QuestionBank): 'en' | 'ga' => b.language ?? 'en';
+
 export function allBanks(userBanks: QuestionBank[], disabled: string[]): BankEntry[] {
   const off = new Set(disabled);
   const userIds = new Set(userBanks.map((b) => b.bankId));
@@ -36,9 +38,10 @@ export function allBanks(userBanks: QuestionBank[], disabled: string[]): BankEnt
   ];
 }
 
-export function buildPool(userBanks: QuestionBank[], disabled: string[]): PoolQuestion[] {
+/** Questions from enabled banks in the given languages (default: all). */
+export function buildPool(userBanks: QuestionBank[], disabled: string[], langs?: ('en' | 'ga')[]): PoolQuestion[] {
   return allBanks(userBanks, disabled)
-    .filter((e) => e.enabled)
+    .filter((e) => e.enabled && (!langs || langs.includes(bankLanguage(e.bank))))
     .flatMap((e) => e.bank.questions.map((q) => ({ ...q, bankId: e.bank.bankId, uid: uidOf(e.bank.bankId, q.id) })));
 }
 

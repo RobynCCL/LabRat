@@ -12,10 +12,11 @@ import { RoomView } from '@/components/lab/RoomView';
 import { usePetWander } from '@/components/lab/usePetWander';
 import { Button, Card, Icon, Moles, ProgressBar, TopicBadge } from '@/components/ui';
 import { useReducedMotion } from '@/App';
+import { useI18n } from '@/i18n/useI18n';
 
-function greeting() {
+function greeting(t: { morning: string; afternoon: string; evening: string }) {
   const h = new Date().getHours();
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  return h < 12 ? t.morning : h < 18 ? t.afternoon : t.evening;
 }
 
 export default function HomeScreen() {
@@ -24,6 +25,8 @@ export default function HomeScreen() {
   const index = useGame((g) => g.index);
   const lvl = useLevel();
   const reduce = useReducedMotion();
+  const { t, c } = useI18n();
+  const tt = t;
   const today = toDay();
   const due = dueCards(save.srs, today, new Set(pool.map((q) => q.uid))).length;
   const streak = currentStreak(save.srs, today);
@@ -52,27 +55,27 @@ export default function HomeScreen() {
             <Avatar size={120} wave />
           </div>
           <div className="relative min-w-0 flex-1">
-            <p className="text-sm font-semibold text-muted">{greeting()}</p>
+            <p className="text-sm font-semibold text-muted">{greeting(t.home)}</p>
             <h1 className="text-3xl font-semibold">{save.settings.name || 'Lab Rat'}</h1>
             <div className="mt-3 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary font-display text-lg font-semibold text-primary-ink">{lvl.level}</span>
               <div className="flex-1">
                 <div className="flex justify-between text-sm">
-                  <span className="font-semibold">Level {lvl.level}</span>
+                  <span className="font-semibold">{t.common.level(lvl.level)}</span>
                   <span className="text-muted num">
                     {lvl.into} / {lvl.needed} XP
                   </span>
                 </div>
-                <ProgressBar value={lvl.progress} className="mt-1" label="Level progress" />
+                <ProgressBar value={lvl.progress} className="mt-1" label={t.home.levelProgress} />
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link to="/play/topic-quiz">
-                <Button icon="target">Quick quiz</Button>
+                <Button icon="target">{t.home.quickQuiz}</Button>
               </Link>
               <Link to="/play/focus-timer">
                 <Button variant="secondary" icon="timer">
-                  Focus timer
+                  {t.home.focusTimer}
                 </Button>
               </Link>
             </div>
@@ -83,30 +86,30 @@ export default function HomeScreen() {
       {/* Today */}
       <motion.div variants={itemV}>
         <Card className="flex h-full flex-col p-5">
-          <h2 className="font-semibold">Today</h2>
+          <h2 className="font-semibold">{t.home.today}</h2>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-xl bg-surface-2 p-2">
               <div className="font-display text-2xl font-semibold num">{todayStats.answered}</div>
-              <div className="text-[11px] font-bold uppercase text-muted">answered</div>
+              <div className="text-[11px] font-bold uppercase text-muted">{t.home.answered}</div>
             </div>
             <div className="rounded-xl bg-surface-2 p-2">
               <div className="font-display text-2xl font-semibold num">{todayStats.minutes}</div>
-              <div className="text-[11px] font-bold uppercase text-muted">minutes</div>
+              <div className="text-[11px] font-bold uppercase text-muted">{t.home.minutes}</div>
             </div>
             <div className="rounded-xl bg-surface-2 p-2">
               <div className="flex items-center justify-center gap-1 font-display text-2xl font-semibold text-accent num">
                 <Icon name="flame" size={18} />
                 {streak}
               </div>
-              <div className="text-[11px] font-bold uppercase text-muted">day streak</div>
+              <div className="text-[11px] font-bold uppercase text-muted">{t.home.dayStreak}</div>
             </div>
           </div>
           <Link to="/play/daily-review" className="mt-3 block">
             <div className={`flex items-center gap-3 rounded-xl border-2 p-3 transition hover:shadow-soft ${due ? 'border-epic/40 bg-epic/10' : 'border-border'}`}>
               <Icon name="calendar" className={due ? 'text-epic' : 'text-muted'} />
               <div className="flex-1">
-                <div className="font-semibold">{due ? `${due} review card${due === 1 ? '' : 's'} due` : 'Daily Review'}</div>
-                <div className="text-xs text-muted">{due ? 'Keep your streak alive' : save.srs.streak.lastDate === today ? 'Done for today. Nice!' : 'Nothing due yet'}</div>
+                <div className="font-semibold">{due ? t.home.reviewDue(due) : t.home.dailyReview}</div>
+                <div className="text-xs text-muted">{due ? t.home.keepStreak : save.srs.streak.lastDate === today ? t.home.doneToday : t.home.nothingDue}</div>
               </div>
               <Icon name="chevron-right" className="text-muted" />
             </div>
@@ -119,22 +122,22 @@ export default function HomeScreen() {
         <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between px-5 pt-4">
             <div>
-              <h2 className="font-semibold">{room.name || roomDef.name}</h2>
+              <h2 className="font-semibold">{room.name || c.room(roomDef)}</h2>
               <p className="text-sm text-muted">
-                {room.placed.length} items{pets.length ? ` · ${pets.map((p) => p.name).join(', ')}` : ''}
+                {t.home.items(room.placed.length)}{pets.length ? ` · ${pets.map((p) => p.name).join(', ')}` : ''}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Moles amount={save.profile.moles} />
               <Link to="/lab">
                 <Button size="sm" variant="secondary" iconRight="chevron-right">
-                  Open lab
+                  {t.home.openLab}
                 </Button>
               </Link>
             </div>
           </div>
-          <Link to="/lab" className="block p-3" aria-label="Open your lab" style={{ background: 'var(--lab-bg)' }}>
-            <RoomView cols={roomDef.cols} rows={roomDef.rows} room={room} inventory={inv} pets={pets} anim={!reduce} className="mx-auto block h-auto w-full max-w-xl" />
+          <Link to="/lab" className="block p-3" aria-label={t.home.openLab} style={{ background: 'var(--lab-bg)' }}>
+            <RoomView cols={roomDef.cols} rows={roomDef.rows} room={room} inventory={inv} pets={pets} anim={!reduce} title={room.name || c.room(roomDef)} className="mx-auto block h-auto w-full max-w-xl" />
           </Link>
         </Card>
       </motion.div>
@@ -143,23 +146,24 @@ export default function HomeScreen() {
       <motion.div variants={itemV}>
         <Card className="flex h-full flex-col p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Topic mastery</h2>
+            <h2 className="font-semibold">{t.home.topicMastery}</h2>
             <Link to="/stats" className="text-sm font-semibold text-primary">
-              All stats
+              {t.home.allStats}
             </Link>
           </div>
           <ul className="mt-3 grid gap-3">
             {summaries.slice(0, 6).map((s) => {
+              const t2 = { topicPicker: tt.topicPicker };
               const t = topics.find((x) => x.id === s.topic)!;
               return (
                 <li key={s.topic} className="flex items-center gap-2.5">
                   <TopicBadge topic={s.topic} size={30} />
                   <div className="min-w-0 flex-1">
                     <div className="flex justify-between text-sm">
-                      <span className="truncate font-semibold">{t.short}</span>
+                      <span className="truncate font-semibold">{c.topicShort(t)}</span>
                       <span className="text-muted num">{Math.round(s.mastery * 100)}%</span>
                     </div>
-                    <ProgressBar value={s.mastery} colour={t.colour} height="h-2" className="mt-1" label={`${t.short} mastery`} />
+                    <ProgressBar value={s.mastery} colour={t.colour} height="h-2" className="mt-1" label={t2.topicPicker.mastery(c.topicShort(t))} />
                   </div>
                 </li>
               );
@@ -167,11 +171,11 @@ export default function HomeScreen() {
           </ul>
           {recent.length > 0 && (
             <div className="mt-auto pt-4">
-              <h3 className="mb-2 text-sm font-semibold text-muted">Recent achievements</h3>
+              <h3 className="mb-2 text-sm font-semibold text-muted">{t.home.recentAchievements}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {recent.map((a) => (
                   <span key={a!.id} className="chip bg-legendary/15 text-legendary">
-                    <Icon name={a!.icon} size={13} /> {a!.name}
+                    <Icon name={a!.icon} size={13} /> {c.achievementName(a!)}
                   </span>
                 ))}
               </div>

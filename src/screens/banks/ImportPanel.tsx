@@ -10,6 +10,8 @@ import { downloadText } from '@/lib/exportPng';
 import { toast } from '@/lib/events';
 import { play } from '@/lib/sound';
 import { Button, Card, Icon, Segmented } from '@/components/ui';
+import { useI18n } from '@/i18n/useI18n';
+import { formatIssue } from '@/i18n';
 
 type Mode = 'merge' | 'replace' | 'copy';
 
@@ -24,6 +26,8 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
   const [parseError, setParseError] = useState('');
   const [mode, setMode] = useState<Mode>('merge');
   const [showWarnings, setShowWarnings] = useState(false);
+  const { t, lang } = useI18n();
+  const [importLang, setImportLang] = useState<'en' | 'ga'>(lang);
 
   const existing = result?.bank ? allBanks(save.banks.user, []).find((e) => e.bank.bankId === result.bank!.bankId) : undefined;
 
@@ -31,18 +35,18 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
     setParseError('');
     setResult(null);
     if (!content.trim()) {
-      setParseError('Nothing to import yet. Paste JSON or choose a file.');
+      setParseError(t.import.nothing);
       return;
     }
     if (kind === 'csv') {
-      const bankName = csvName.trim() || name.replace(/\.csv$/i, '') || 'Imported CSV bank';
-      setResult(parseCsvBank(content, { name: bankName, bankId: slugify(bankName) }, topics));
+      const bankName = csvName.trim() || name.replace(/\.csv$/i, '') || t.import.defaultCsvName;
+      setResult(parseCsvBank(content, { name: bankName, bankId: slugify(bankName), language: importLang }, topics));
       return;
     }
     try {
       setResult(validateBank(parseJsonLoose(content), topics));
     } catch (e) {
-      setParseError(`That isn't valid JSON: ${(e as Error).message}. Check for missing commas, quotes or brackets.`);
+      setParseError(t.import.invalidJson((e as Error).message));
     }
   };
 
@@ -54,7 +58,7 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
 
   const doImport = () => {
     if (!result?.bank) return;
-    let bank: QuestionBank = result.bank;
+    let bank: QuestionBank = { ...result.bank, language: result.bank.language ?? importLang };
     const prev = save.banks.user.find((b) => b.bankId === bank.bankId);
     if (existing) {
       if (mode === 'copy') {
@@ -70,7 +74,7 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
     }
     upsertBank(bank);
     play('buy');
-    toast(`Imported ${result.validCount} question${result.validCount === 1 ? '' : 's'} into “${bank.name}”`, 'good');
+    toast(t.import.imported(result.validCount, bank.name), 'good');
     setResult(null);
     setText('');
     onDone(bank.bankId);
@@ -79,23 +83,30 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
       <Card className="p-5">
-        <Segmented label="Import source" value={source} onChange={setSource} options={[{ value: 'paste', label: 'Paste JSON' }, { value: 'file', label: 'Upload file (.json / .csv)' }]} />
+        <Segmented label={t.import.source} value={source} onChange={setSource} options={[{ value: 'paste', label: t.import.paste }, { value: 'file', label: t.import.upload }]} />
+        <label className="mt-4 block max-w-sm">
+          <span className="label">{t.import.language}</span>
+          <select className="input" value={importLang} onChange={(e) => setImportLang(e.target.value as 'en' | 'ga')}>
+            <option value="en">{t.common.languageNames.en}</option>
+            <option value="ga">{t.common.languageNames.ga}</option>
+          </select>
+        </label>
         {source === 'paste' ? (
           <div className="mt-4">
             <label className="label" htmlFor="paste">
-              Paste a bank (or a list of questions). Text around a ```json block is ignored.
+              {t.import.pasteLabel}
             </label>
             <textarea id="paste" className="input min-h-[14rem] font-mono text-xs" value={text} onChange={(e) => setText(e.target.value)} placeholder='{"bankId": "…", "name": "…", "version": 1, "questions": [ … ]}' spellCheck={false} />
             <Button className="mt-3" icon="check" onClick={() => check(text, 'json')}>
-              Check
+              {t.import.check}
             </Button>
           </div>
         ) : (
           <div className="mt-4 grid gap-3">
             <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border p-8 text-center hover:border-primary/50">
               <Icon name="upload" size={28} className="text-muted" />
-              <span className="font-semibold">{fileName || 'Choose a .json or .csv file'}</span>
-              <span className="text-xs text-muted">CSV columns: id, topic, subtopic, type, difficulty, question, options, answer, explanation, tags, tolerance, unit, caseSensitive</span>
+              <span className="font-semibold">{fileName || t.import.chooseFile}</span>
+              <span className="text-xs text-muted">{t.import.csvColumns}</span>
               <input
                 type="file"
                 accept=".json,.csv,application/json,text/csv"
@@ -109,9 +120,9 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
             </label>
             <div>
               <label className="label" htmlFor="csvname">
-                Bank name for CSV files (optional)
+                {t.import.csvName}
               </label>
-              <input id="csvname" className="input" value={csvName} onChange={(e) => setCsvName(e.target.value)} placeholder="e.g. Organic – reaction types" />
+              <input id="csvname" className="input" value={csvName} onChange={(e) => setCsvName(e.target.value)} placeholder={t.import.csvNamePlaceholder} />
             </div>
           </div>
         )}
@@ -129,10 +140,12 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
                 <Icon name={result.errors.length ? 'info' : 'check'} className={result.errors.length ? 'text-warn' : 'text-good'} />
                 <div>
                   <div className="font-semibold">
-                    “{result.bank.name}” · {result.validCount} valid question{result.validCount === 1 ? '' : 's'}
-                    {result.invalidCount > 0 && <span className="text-bad">, {result.invalidCount} with problems (will be skipped)</span>}
+                    {t.import.valid(result.bank.name, result.validCount)}
+                    {result.invalidCount > 0 && <span className="text-bad">{t.import.problems(result.invalidCount)}</span>}
                   </div>
-                  <div className="text-sm text-muted">bankId: {result.bank.bankId}</div>
+                  <div className="text-sm text-muted">
+                    {t.import.bankId} {result.bank.bankId} · {t.common.languageNames[result.bank.language ?? importLang]}
+                  </div>
                 </div>
               </div>
             ) : null}
@@ -141,10 +154,10 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
                 <table className="w-full text-left text-sm">
                   <thead className="sticky top-0 bg-surface-2 text-xs uppercase text-muted">
                     <tr>
-                      <th className="px-3 py-2">Row</th>
-                      <th className="px-3 py-2">ID</th>
-                      <th className="px-3 py-2">Field</th>
-                      <th className="px-3 py-2">Problem</th>
+                      <th className="px-3 py-2">{t.import.row}</th>
+                      <th className="px-3 py-2">{t.import.id}</th>
+                      <th className="px-3 py-2">{t.import.field}</th>
+                      <th className="px-3 py-2">{t.import.problem}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -153,7 +166,7 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
                         <td className="px-3 py-1.5 num">{e.row ?? '–'}</td>
                         <td className="px-3 py-1.5 font-mono text-xs">{e.id ?? ''}</td>
                         <td className="px-3 py-1.5 font-mono text-xs">{e.field ?? ''}</td>
-                        <td className="px-3 py-1.5 text-bad">{e.message}</td>
+                        <td className="px-3 py-1.5 text-bad">{formatIssue(t, e)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -163,14 +176,14 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
             {result.warnings.length > 0 && (
               <div>
                 <button className="text-sm font-semibold text-muted underline" onClick={() => setShowWarnings(!showWarnings)}>
-                  {showWarnings ? 'Hide' : 'Show'} {result.warnings.length} warning{result.warnings.length === 1 ? '' : 's'}
+                  {t.import.warnings(showWarnings, result.warnings.length)}
                 </button>
                 {showWarnings && (
                   <ul className="mt-1 list-disc pl-6 text-sm text-muted">
                     {result.warnings.map((w, i) => (
                       <li key={i}>
-                        {w.row != null && `Row ${w.row}: `}
-                        {w.message}
+                        {w.row != null && t.import.rowN(w.row)}
+                        {formatIssue(t, w)}
                       </li>
                     ))}
                   </ul>
@@ -182,23 +195,23 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
                 {existing && (
                   <div className="w-full">
                     <p className="mb-1 text-sm">
-                      A bank with id <b>{result.bank.bankId}</b> already exists ({existing.bank.questions.length} questions{existing.builtIn ? ', built-in' : ''}).
+                      {t.import.exists(result.bank.bankId, existing.bank.questions.length, existing.builtIn)}
                     </p>
                     <Segmented
                       size="sm"
-                      label="Existing bank"
+                      label={t.import.existingAria}
                       value={mode}
                       onChange={setMode}
                       options={[
-                        { value: 'merge', label: 'Merge (update same ids)' },
-                        { value: 'replace', label: 'Replace' },
-                        { value: 'copy', label: 'Import as a copy' },
+                        { value: 'merge', label: t.import.merge },
+                        { value: 'replace', label: t.import.replace },
+                        { value: 'copy', label: t.import.copy },
                       ]}
                     />
                   </div>
                 )}
                 <Button icon="download" onClick={doImport}>
-                  Import {result.validCount} question{result.validCount === 1 ? '' : 's'}
+                  {t.import.importN(result.validCount)}
                 </Button>
               </div>
             )}
@@ -207,11 +220,11 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
       </Card>
 
       <Card className="h-fit p-5">
-        <h3 className="font-semibold">Templates</h3>
-        <p className="mt-1 text-sm text-muted">Start from a template with one example of every question type.</p>
+        <h3 className="font-semibold">{t.import.templates}</h3>
+        <p className="mt-1 text-sm text-muted">{t.import.templatesHelp}</p>
         <div className="mt-3 grid gap-2">
           <Button variant="secondary" size="sm" icon="download" onClick={() => downloadText(JSON.stringify(template, null, 2), 'lab-rat-bank-template.json')}>
-            JSON template
+            {t.import.jsonTemplate}
           </Button>
           <Button
             variant="secondary"
@@ -222,10 +235,10 @@ export function ImportPanel({ onDone, initialText = '' }: { onDone: (bankId: str
               downloadText(questionsToCsv(r.bank!.questions), 'lab-rat-bank-template.csv', 'text/csv');
             }}
           >
-            CSV template
+            {t.import.csvTemplate}
           </Button>
         </div>
-        <p className="mt-4 text-xs text-muted">Topic ids: {topics.map((t) => t.id).join(', ')}</p>
+        <p className="mt-4 text-xs text-muted">{t.import.topicIds(topics.map((tp) => tp.id).join(', '))}</p>
       </Card>
     </div>
   );

@@ -210,7 +210,29 @@ Optional: `useBadge` on the `GameMode` is a React hook returning a short badge s
 
 ---
 
-## 6. Changing the save format
+## 6. Translations (English / Gaeilge)
+
+The whole game is bilingual. There are three kinds of translated text:
+
+| What | Where | Notes |
+| --- | --- | --- |
+| Interface text (buttons, menus, messages) | `src/i18n/en.ts` and `src/i18n/ga.ts` | `ga.ts` is typed as `Dict`, so the build fails if any Irish key is missing. Values are strings, or functions when they include numbers or names. |
+| Game content (items, colours, topics, subtopics, pets' sayings, achievements, modes, rooms) | English in each data file; Irish in `src/content/translations.ts` keyed by id | A unit test (`src/i18n/i18n.test.ts`) fails if anything is missing an Irish entry. |
+| Questions | Separate banks with `"language": "ga"` | `src/content/banks/sample-ga.json` is the Irish sample. Settings → *Question language* chooses which banks are used: same as app, English, Irish or both. |
+
+**In components** use the hook: `const { t, c, lang } = useI18n();`, then `t.shop.buy`, `t.quiz.onlyN(3)`, `c.itemName(item)`, `c.topicName(topic)`. Never write user-visible English directly in a component.
+
+**Irish counting:** use `count(n, 'ceist')` from `src/i18n/ga.ts`. It applies the right mutation: *ceist amháin*, *3 cheist*, *7 gceist*, *20 ceist*. Where a counted noun is awkward, use a label style instead ("Ceisteanna: 5").
+
+**Answer checking ignores fadas,** so "eatanol" matches "eatánól". For text questions you only need one spelling of each accepted answer.
+
+**Adding something new?** Add the English, then the Irish in `translations.ts` (content) or `ga.ts` (interface). Run `npm test` to confirm nothing is missing.
+
+**Corrections from Irish speakers are very welcome.** Just edit the strings; no code changes are needed.
+
+---
+
+## 7. Changing the save format
 
 The save shape is `SaveData` in `src/store/saveTypes.ts`; defaults are in `src/store/defaults.ts`.
 
@@ -221,7 +243,7 @@ All writes go through `commit()` in `game.ts`, which applies the change, checks 
 
 ---
 
-## 7. Economy and balancing
+## 8. Economy and balancing
 
 Every number is in `src/content/economy.ts`: starting Moles, per-answer rewards by difficulty, streak bonus, completion bands, focus Moles per minute, the tab-leave grace period, review rewards, sell refund, the level curve, level-up bonus and rooms (size, unlock level, price). Item prices sit with each item in `items.ts`. The tests in `engine/economy/economy.test.ts` read from the config, so they keep passing when you rebalance, as long as the rules still hold.
 

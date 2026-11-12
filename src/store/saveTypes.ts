@@ -38,8 +38,14 @@ export interface TopicStats {
   studyMinutes: number;
 }
 
+export type QuestionLanguage = 'auto' | 'en' | 'ga' | 'both';
+
 export interface Settings {
   name: string;
+  /** Interface language. */
+  language: 'en' | 'ga';
+  /** Which question banks to use: 'auto' follows the interface language. */
+  questionLanguage: QuestionLanguage;
   theme: 'system' | 'light' | 'dark';
   muted: boolean;
   volume: number;

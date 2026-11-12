@@ -19,12 +19,12 @@ export const economy = {
     streakEvery: 5,
     streakBonusMoles: 10,
     streakBonusXp: 15,
-    /** Completion bonus by accuracy band (fraction correct ≥ key). */
+    /** Completion bonus by accuracy band (fraction correct ≥ minAccuracy). `label` is a key into the quiz.bands text. */
     completion: [
-      { minAccuracy: 1, moles: 40, xp: 60, label: 'Perfect run!' },
-      { minAccuracy: 0.8, moles: 20, xp: 30, label: 'Great work' },
-      { minAccuracy: 0.5, moles: 8, xp: 15, label: 'Good effort' },
-      { minAccuracy: 0, moles: 0, xp: 5, label: 'Keep practising' },
+      { minAccuracy: 1, moles: 40, xp: 60, label: 'perfect' },
+      { minAccuracy: 0.8, moles: 20, xp: 30, label: 'great' },
+      { minAccuracy: 0.5, moles: 8, xp: 15, label: 'good' },
+      { minAccuracy: 0, moles: 0, xp: 5, label: 'keep' },
     ],
     /** 20-question quizzes earn this multiplier on the completion bonus. */
     longQuizMultiplier: 1.5,

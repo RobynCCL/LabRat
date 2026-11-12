@@ -54,6 +54,9 @@ function SettingsEffects() {
     document.documentElement.classList.toggle('reduce-motion', reduce);
   }, [reduce]);
   useEffect(() => configureSound({ muted: settings.muted, volume: settings.volume }), [settings.muted, settings.volume]);
+  useEffect(() => {
+    document.documentElement.lang = settings.language === 'ga' ? 'ga' : 'en-IE';
+  }, [settings.language]);
   return null;
 }
 

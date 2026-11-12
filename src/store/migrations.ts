@@ -31,14 +31,22 @@ export function fillDefaults<T>(value: unknown, defaults: T): T {
   return out as T;
 }
 
-export class SaveFormatError extends Error {}
+export class SaveFormatError extends Error {
+  constructor(
+    message: string,
+    /** Key into settings.saveErrors text. */
+    public code: 'notSave' | 'newer' = 'notSave',
+  ) {
+    super(message);
+  }
+}
 
 export function migrate(raw: unknown): SaveData {
   if (!isPlainObject(raw) || typeof raw.version !== 'number' || !isPlainObject(raw.profile)) {
     throw new SaveFormatError('This does not look like a Lab Rat save file.');
   }
   let s: AnySave = raw;
-  if (s.version > SAVE_VERSION) throw new SaveFormatError('This save was made by a newer version of Lab Rat.');
+  if (s.version > SAVE_VERSION) throw new SaveFormatError('This save was made by a newer version of Lab Rat.', 'newer');
   while (s.version < SAVE_VERSION) {
     const step = migrations[s.version];
     if (!step) throw new SaveFormatError(`No migration from save version ${s.version}.`);

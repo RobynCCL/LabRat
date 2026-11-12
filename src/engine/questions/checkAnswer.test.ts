@@ -52,8 +52,8 @@ describe('checkAnswer', () => {
   it('numeric default 1% tolerance and helpful notes', () => {
     const q: Question = { ...base, type: 'numeric', answer: { value: 22.4 } };
     expect(checkAnswer(q, { type: 'numeric', value: '22.5' }).correct).toBe(true);
-    expect(checkAnswer(q, { type: 'numeric', value: '22400' }).note).toMatch(/power of ten/);
-    expect(checkAnswer(q, { type: 'numeric', value: 'twenty' }).note).toMatch(/number/);
+    expect(checkAnswer(q, { type: 'numeric', value: '22400' }).note).toBe('powerOfTen');
+    expect(checkAnswer(q, { type: 'numeric', value: 'twenty' }).note).toBe('notNumber');
   });
 
   it('text: case, spacing and chemical notation are forgiving', () => {
@@ -62,6 +62,12 @@ describe('checkAnswer', () => {
     expect(checkAnswer(q, { type: 'text', value: 'MnO₂' }).correct).toBe(true);
     expect(checkAnswer(q, { type: 'text', value: 'mno2' }).correct).toBe(true);
     expect(checkAnswer(q, { type: 'text', value: '' }).correct).toBe(false);
+  });
+
+  it('text: Irish fadas are optional', () => {
+    const q: Question = { ...base, type: 'text', answer: ['eatánól'] };
+    expect(checkAnswer(q, { type: 'text', value: 'eatanol' }).correct).toBe(true);
+    expect(checkAnswer(q, { type: 'text', value: 'Eatánól' }).correct).toBe(true);
   });
 
   it('text: caseSensitive', () => {

@@ -1,5 +1,5 @@
 /** Render an on-screen SVG (the lab) to a captioned PNG and download it. */
-export async function exportSvgToPng(svg: SVGSVGElement, opts: { title: string; subtitle: string; filename: string; dark?: boolean }) {
+export async function exportSvgToPng(svg: SVGSVGElement, opts: { title: string; subtitle: string; filename: string; dark?: boolean; footer: string }) {
   const clone = svg.cloneNode(true) as SVGSVGElement;
   clone.querySelectorAll('[data-export-ignore]').forEach((n) => n.remove());
   const vb = svg.viewBox.baseVal;
@@ -46,7 +46,7 @@ export async function exportSvgToPng(svg: SVGSVGElement, opts: { title: string; 
   ctx.fillStyle = opts.dark ? '#2dbeac' : '#0f766e';
   ctx.font = "600 14px 'Fredoka Variable', system-ui, sans-serif";
   ctx.textAlign = 'right';
-  ctx.fillText('Made in Lab Rat · Leaving Cert Chemistry', cw - margin, ch - 16);
+  ctx.fillText(opts.footer, cw - margin, ch - 16);
 
   const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('PNG export failed'))), 'image/png'));
   downloadBlob(blob, opts.filename);

@@ -8,6 +8,7 @@ import { ItemPreview } from '@/components/ItemPreview';
 import { Avatar } from '@/components/Avatar';
 import { Button, Card, Icon, IconButton, Modal, Moles, PageHeader, RarityTag, Segmented } from '@/components/ui';
 import { cleanName, suggestName } from '@/lib/pets';
+import { useI18n } from '@/i18n/useI18n';
 import { play } from '@/lib/sound';
 import { toast } from '@/lib/events';
 
@@ -19,6 +20,7 @@ export default function ShopScreen() {
   const cat: Category = fromUrl && CATEGORIES.some((c) => c.id === fromUrl) ? fromUrl : 'furniture';
   const setCat = (c: Category) => setParams({ tab: c }, { replace: true });
   const [sort, setSort] = useState<Sort>('price');
+  const { t, c: cx } = useI18n();
   const items = shopItems
     .filter((i) => i.category === cat)
     .sort((a, b) =>
@@ -28,19 +30,19 @@ export default function ShopScreen() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Shop"
+        title={t.shop.title}
         icon="bag"
-        subtitle="Spend your Moles on kit, decor and style."
+        subtitle={t.shop.subtitle}
         actions={
           <Link to="/lab">
             <Button variant="secondary" icon="flask">
-              Go to my lab
+              {t.shop.goToLab}
             </Button>
           </Link>
         }
       />
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Shop categories">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.shop.categories}>
           {CATEGORIES.map((c) => (
             <button
               key={c.id}
@@ -49,20 +51,20 @@ export default function ShopScreen() {
               onClick={() => setCat(c.id)}
               className={`rounded-xl px-4 py-2 text-left transition ${cat === c.id ? 'bg-primary text-primary-ink shadow-press' : 'bg-surface text-ink shadow-soft hover:bg-surface-2'}`}
             >
-              <div className="font-bold">{c.label}</div>
-              <div className={`hidden text-xs 2xl:block ${cat === c.id ? 'opacity-85' : 'text-muted'}`}>{c.blurb}</div>
+              <div className="font-bold">{cx.category(c).label}</div>
+              <div className={`hidden text-xs 2xl:block ${cat === c.id ? 'opacity-85' : 'text-muted'}`}>{cx.category(c).blurb}</div>
             </button>
           ))}
         </div>
-        <Segmented size="sm" label="Sort" value={sort} onChange={setSort} options={[{ value: 'price', label: 'Price' }, { value: 'rarity', label: 'Rarity' }]} />
+        <Segmented size="sm" label={t.shop.sort} value={sort} onChange={setSort} options={[{ value: 'price', label: t.shop.price }, { value: 'rarity', label: t.shop.rarity }]} />
       </div>
 
       <div className={cat === 'avatar' ? 'grid gap-4 lg:grid-cols-[16rem_1fr]' : ''}>
         {cat === 'avatar' && (
           <Card className="flex h-fit flex-col items-center p-5 lg:sticky lg:top-20">
             <Avatar size={170} />
-            <p className="mt-2 font-display text-lg">Your look</p>
-            <p className="text-center text-sm text-muted">Buy a style, then tap it again to wear it.</p>
+            <p className="mt-2 font-display text-lg">{t.shop.yourLook}</p>
+            <p className="text-center text-sm text-muted">{t.shop.lookHelp}</p>
           </Card>
         )}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -82,6 +84,8 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
   const [variant, setVariant] = useState(item.variants[0].id);
   const [hover, setHover] = useState(false);
   const [adopting, setAdopting] = useState(false);
+  const { t, c: cx } = useI18n();
+  const nameOf = cx.itemName(item);
   const v = item.variants.find((x) => x.id === variant)!;
   const locked = !!item.unlockLevel && level < item.unlockLevel;
   const owns = item.kind === 'applied' ? ownsApplied(save, item, variant) : false;
@@ -104,17 +108,18 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
     const r = buy(item.id, variant, { name });
     if (!r.ok) {
       play('error');
-      toast(r.reason ?? 'Could not buy that', 'bad');
+      toast(r.reason ?? t.shop.couldNotBuy, 'bad');
       return;
     }
     play('buy');
     if (item.pet) {
       setAdopting(false);
-      toast(item.kind === 'pet' ? `Welcome home, ${cleanName(name ?? '') || item.name}! Say hi in your lab.` : `${cleanName(name ?? '') || item.name} is in storage. Put the tank on a bench in Decorate mode.`, 'good');
+      const petName = cleanName(name ?? '') || nameOf;
+      toast(item.kind === 'pet' ? t.pets.welcomeHome(petName) : t.pets.tankStored(petName), 'good');
     } else if (item.kind === 'applied') {
       equip(item.slot, { itemId: item.id, variant });
-      toast(`${item.name} (${v.name}) unlocked and applied!`, 'good');
-    } else toast(`${item.name} added to storage. Place it in Decorate mode.`, 'good');
+      toast(t.shop.unlockedApplied(nameOf, cx.variantName(item, v.id)), 'good');
+    } else toast(t.shop.addedStorage(nameOf), 'good');
   };
 
   const firstColour = (c: Record<string, string>) => Object.values(c).find((x) => x.startsWith('#')) ?? '#ccc';
@@ -127,54 +132,54 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
         <div className="absolute left-3 top-3 flex gap-1">
           <RarityTag rarity={item.rarity} />
           {item.animated && (
-            <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-bold text-muted shadow-sm" title="Animated">
-              <Icon name="sparkles" size={12} className="inline" /> Animated
+            <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-bold text-muted shadow-sm" title={t.shop.animated}>
+              <Icon name="sparkles" size={12} className="inline" /> {t.shop.animated}
             </span>
           )}
         </div>
         {ownedCount > 0 && (
           <span className="absolute right-3 top-3 max-w-[45%] truncate chip" title={owned.map((o) => o.name).join(', ')}>
-            {item.pet ? owned.map((o) => o.name).join(', ') : `Owned ×${ownedCount}`}
+            {item.pet ? owned.map((o) => o.name).join(', ') : t.shop.owned(ownedCount)}
           </span>
         )}
         {locked && (
           <div className="absolute inset-0 grid place-items-center bg-surface/70 backdrop-blur-[1px]">
             <span className="flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-sm font-bold text-bg">
-              <Icon name="lock" size={14} /> Unlocks at level {item.unlockLevel}
+              <Icon name="lock" size={14} /> {t.shop.unlocksAt(item.unlockLevel ?? 0)}
             </span>
           </div>
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-display text-lg font-semibold leading-tight">{item.name}</h3>
-          {item.kind === 'pet' && <span className="chip shrink-0">Roams free</span>}
+          <h3 className="font-display text-lg font-semibold leading-tight">{nameOf}</h3>
+          {item.kind === 'pet' && <span className="chip shrink-0">{t.pets.roams}</span>}
           {item.kind === 'placeable' && (
-            <span className="chip shrink-0" title="Size in tiles">
-              {item.layer === 'wall' ? 'Wall' : item.layer === 'tabletop' ? 'Bench-top' : item.layer === 'rug' ? 'Rug' : `${item.size[0]}×${item.size[1]}`}
+            <span className="chip shrink-0" title={t.shop.sizeTitle}>
+              {item.layer === 'wall' ? t.shop.wall : item.layer === 'tabletop' ? t.shop.benchTop : item.layer === 'rug' ? t.shop.rug : `${item.size[0]}×${item.size[1]}`}
             </span>
           )}
         </div>
-        <p className="mt-0.5 flex-1 text-sm text-muted">{item.description}</p>
+        <p className="mt-0.5 flex-1 text-sm text-muted">{cx.itemDesc(item)}</p>
         {item.variants.length > 1 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={`${item.name} colour`}>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t.shop.colour(nameOf)}>
             {item.variants.map((x) => (
               <button
                 key={x.id}
                 role="radio"
                 aria-checked={variant === x.id}
-                aria-label={x.name}
-                title={x.name}
+                aria-label={cx.variantName(item, x.id)}
+                title={cx.variantName(item, x.id)}
                 onClick={() => setVariant(x.id)}
                 className={`h-7 w-7 rounded-full border-2 transition ${variant === x.id ? 'scale-110 border-ink' : 'border-border hover:scale-105'}`}
                 style={{ background: `linear-gradient(135deg, ${firstColour(x.colors)} 50%, ${accentColour(x.colors)} 50%)` }}
               />
             ))}
-            <span className="ml-1 text-xs font-semibold text-muted">{v.name}</span>
+            <span className="ml-1 text-xs font-semibold text-muted">{cx.variantName(item, v.id)}</span>
           </div>
         )}
         <div className="mt-4 flex items-center justify-between gap-2">
-          {item.price === 0 ? <span className="text-sm font-bold text-good">Free</span> : <Moles amount={item.price} size={20} className={affordable ? '' : 'text-bad'} />}
+          {item.price === 0 ? <span className="text-sm font-bold text-good">{t.common.free}</span> : <Moles amount={item.price} size={20} className={affordable ? '' : 'text-bad'} />}
           {item.kind === 'applied' && owns ? (
             <Button
               size="sm"
@@ -186,11 +191,11 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
                 play('place');
               }}
             >
-              {equipped ? (item.category === 'avatar' ? 'Wearing' : 'Applied') : item.category === 'avatar' ? 'Wear' : 'Apply'}
+              {equipped ? (item.category === 'avatar' ? t.shop.wearing : t.shop.applied) : item.category === 'avatar' ? t.shop.wear : t.shop.apply}
             </Button>
           ) : (
             <Button size="sm" icon={item.pet ? 'heart' : 'bag'} disabled={locked || !affordable} onClick={() => onBuy()} silent>
-              {!affordable ? 'Need more' : item.pet ? 'Adopt' : 'Buy'}
+              {!affordable ? t.shop.needMore : item.pet ? t.pets.adopt : t.shop.buy}
             </Button>
           )}
         </div>
@@ -203,19 +208,19 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
 function AdoptModal({ open, onClose, item, variant, onAdopt }: { open: boolean; onClose: () => void; item: ShopItem; variant: string; onAdopt: (name: string) => void }) {
   const taken = useGame((g) => g.save.inventory.map((o) => o.name ?? ''));
   const [name, setName] = useState('');
-  const v = item.variants.find((x) => x.id === variant);
+  const { t, c: cx } = useI18n();
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={`Adopt a ${item.name.toLowerCase().replace(/ \(.*\)$/, '')}`}
+      title={t.pets.adoptTitle(cx.itemName(item).replace(/ \(.*\)$/, ''))}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Not yet
+            {t.lab.notYet}
           </Button>
           <Button icon="heart" disabled={!cleanName(name)} onClick={() => onAdopt(cleanName(name))}>
-            Adopt for {item.price} mol
+            {t.pets.adoptFor(item.price)}
           </Button>
         </>
       }
@@ -226,23 +231,23 @@ function AdoptModal({ open, onClose, item, variant, onAdopt }: { open: boolean; 
         </div>
         <div className="w-full flex-1">
           <p className="text-sm text-muted">
-            {v?.name} · {item.description}
+            {cx.variantName(item, variant)} · {cx.itemDesc(item)}
           </p>
           <label className="mt-3 block">
-            <span className="label">What will you call them?</span>
+            <span className="label">{t.pets.callThem}</span>
             <div className="flex gap-1">
               <input
                 className="input"
                 maxLength={16}
                 value={name}
-                placeholder="e.g. Boron"
+                placeholder={t.pets.namePlaceholder}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && cleanName(name) && onAdopt(cleanName(name))}
               />
-              <IconButton icon="sparkles" label="Suggest a name" onClick={() => setName(suggestName(taken))} />
+              <IconButton icon="sparkles" label={t.pets.suggest} onClick={() => setName(suggestName(taken))} />
             </div>
           </label>
-          <p className="mt-2 text-xs text-muted">You can rename them later from the Pets list in your lab.</p>
+          <p className="mt-2 text-xs text-muted">{t.pets.renameLater}</p>
         </div>
       </div>
     </Modal>

@@ -1,4 +1,5 @@
 import { topics } from '@/content/topics';
+import { ga as contentGa } from '@/content/translations';
 import template from '@/content/banks/_template.json';
 import type { QuestionType } from '@/engine/questions/types';
 
@@ -11,6 +12,8 @@ export interface BankRequest {
   bankId: string;
   bankName: string;
   notes: string;
+  /** Language to write the questions in. */
+  language: 'en' | 'ga';
 }
 
 const TYPE_DOCS: Record<QuestionType, string> = {
@@ -25,6 +28,8 @@ const TYPE_DOCS: Record<QuestionType, string> = {
 /** Builds a copy-ready prompt asking Claude for a question bank in Lab Rat's JSON format. */
 export function buildBankPrompt(r: BankRequest): string {
   const topic = topics.find((t) => t.id === r.topic);
+  const irish = r.language === 'ga';
+  const topicLabel = irish && topic ? `${topic.name} / ${contentGa.topics[topic.id]?.name ?? topic.name}` : (topic?.name ?? r.topic);
   const diff =
     r.difficulty === 'mixed'
       ? 'a mix of difficulties: roughly 30% difficulty 1 (foundation recall), 50% difficulty 2 (standard exam questions), 20% difficulty 3 (challenging, multi-step)'
@@ -34,22 +39,28 @@ export function buildBankPrompt(r: BankRequest): string {
     bankId: r.bankId || 'my-bank',
     name: r.bankName || 'My bank',
     version: 1,
+    ...(irish ? { language: 'ga' } : {}),
     questions: template.questions.filter((q) => types.includes(q.type as QuestionType)).slice(0, 3),
   };
 
   return `You are an expert Irish Leaving Certificate Chemistry teacher writing revision questions for the "Lab Rat" study game.
 
 Write ${r.count} original, accurate questions on:
-- Topic: ${topic?.name ?? r.topic} (topic id: "${r.topic}")${r.subtopic ? `\n- Subtopic: ${r.subtopic}` : ''}
+- Topic: ${topicLabel} (topic id: "${r.topic}")${r.subtopic ? `\n- Subtopic: ${r.subtopic}` : ''}
 - Level: Leaving Certificate (Higher Level syllabus), using Irish conventions (e.g. s.t.p. molar volume 22.4 L, "mol L-1", "Mr", mandatory experiments as named in the syllabus).
 - Difficulty: ${diff}.
-- Question types to use (spread them evenly): ${types.join(', ')}.${r.notes.trim() ? `\n- Extra instructions: ${r.notes.trim()}` : ''}
+- Question types to use (spread them evenly): ${types.join(', ')}.${r.notes.trim() ? `\n- Extra instructions: ${r.notes.trim()}` : ''}${
+    irish
+      ? `
+- LANGUAGE: write every question, option, answer, subtopic and explanation in IRISH (Gaeilge), as used in the Irish-language Leaving Certificate Chemistry exam papers. Use standard Irish chemistry terminology (téarma.ie). Keep chemical formulae, symbols and units unchanged. For "text" questions, list accepted answers both with and without fadas only if they differ in more than fadas (fadas are ignored automatically), and include the chemical formula where sensible.`
+      : ''
+  }
 
 OUTPUT FORMAT – return ONLY one JSON object in a single \`\`\`json code block, no other text:
 {
   "bankId": "${r.bankId || 'my-bank'}",       // lowercase letters, digits and hyphens
   "name": "${r.bankName || 'My bank'}",
-  "version": 1,
+  "version": 1,${irish ? '\n  "language": "ga",' : ''}
   "questions": [ ... ]
 }
 
@@ -74,7 +85,7 @@ Quality rules:
 - Don't use "all of the above" (options are shuffled).
 - Numeric tolerances should allow sensible rounding (e.g. 0.01 for answers to 2 decimal places).
 
-Example of the exact format:
+Example of the exact format${irish ? ' (the example is in English only to show the structure – write yours in Irish)' : ''}:
 \`\`\`json
 ${JSON.stringify(example, null, 2)}
 \`\`\``;
