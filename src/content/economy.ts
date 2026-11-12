@@ -55,6 +55,9 @@ export const economy = {
     maxCards: 20,
   },
 
+  /** Moles for the first pat of each pet each day. */
+  dailyPatMoles: 5,
+
   /** Fraction of the price refunded when selling a placed/stored item. */
   sellRefund: 0.5,
 

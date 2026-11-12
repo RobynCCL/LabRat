@@ -4,12 +4,15 @@
  *
  * Prices live here next to each item; global multipliers live in economy.ts.
  */
-import type { ShopItem } from './types';
+import type { PetInfo, ShopItem } from './types';
 import * as S from './art/structure';
 import * as E from './art/equipment';
 import * as D from './art/decor';
 import * as F from './art/fun';
 import * as A from './art/avatar';
+import * as U from './art/furniture';
+import * as Z from './art/cozy';
+import * as P from './art/pets';
 
 export const shopItems: ShopItem[] = [
   /* ─────────────── STRUCTURE: floors ─────────────── */
@@ -166,7 +169,7 @@ export const shopItems: ShopItem[] = [
   },
   {
     id: 'extinguisher', name: 'Fire extinguisher', description: 'Safety first. Always.',
-    category: 'equipment', kind: 'placeable', layer: 'floor', size: [1, 1], rotatable: false,
+    category: 'equipment', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
     rarity: 'common', price: 30, Art: E.FireExtinguisher,
     variants: [
       { id: 'water', name: 'Water (red)', colors: { body: '#d63c3c', band: '#d63c3c' } },
@@ -328,16 +331,6 @@ export const shopItems: ShopItem[] = [
 
   /* ─────────────── FUN ─────────────── */
   {
-    id: 'pet-rat', name: 'Pip the lab rat', description: 'A very good lab assistant. Animated.',
-    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], rotatable: false, animated: true,
-    rarity: 'epic', price: 500, Art: F.LabRatPet,
-    variants: [
-      { id: 'white', name: 'White', colors: { fur: '#f4f2ee', eye: '#d64b6a', bed: '#5fa8d3' } },
-      { id: 'grey', name: 'Grey', colors: { fur: '#a9a6b3', eye: '#2b2233', bed: '#e9b73a' } },
-      { id: 'brown', name: 'Brown', colors: { fur: '#b08462', eye: '#2b2233', bed: '#7fbf7a' } },
-    ],
-  },
-  {
     id: 'bubbling-flask', name: 'Bubbling flask', description: 'It just keeps bubbling. Animated.',
     category: 'fun', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
     rarity: 'rare', price: 220, Art: F.BubblingFlask,
@@ -369,11 +362,434 @@ export const shopItems: ShopItem[] = [
   },
   {
     id: 'tesla-coil', name: 'Tesla coil', description: 'Strictly decorative. Probably. Animated.',
-    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], rotatable: false, animated: true,
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front', animated: true,
     rarity: 'legendary', price: 1200, Art: F.TeslaCoil, unlockLevel: 8,
     variants: [
       { id: 'violet', name: 'Violet arcs', colors: { coil: '#c27c3a', spark: '#b98cff' } },
       { id: 'blue', name: 'Blue arcs', colors: { coil: '#c27c3a', spark: '#6fd3ff' } },
+    ],
+  },
+
+  /* ─────────────── STRUCTURE: extra styles ─────────────── */
+  {
+    id: 'wall-stripes', name: 'Striped wallpaper', description: 'Wallpaper above, panelling below. Very cosy.',
+    category: 'structure', kind: 'applied', slot: 'wall', rarity: 'uncommon', price: 200, Art: S.StripedWall,
+    variants: [
+      { id: 'mint', name: 'Mint', colors: { a: '#eaf6f1', b: '#a9d8c4' } },
+      { id: 'rose', name: 'Rose', colors: { a: '#fbeff1', b: '#eab3bd' } },
+      { id: 'butter', name: 'Butter', colors: { a: '#fdf7e3', b: '#ecd27e' } },
+      { id: 'navy', name: 'Navy', colors: { a: '#e9eef7', b: '#5b7099' } },
+    ],
+  },
+  {
+    id: 'wall-starry', name: 'Starry night wallpaper', description: 'Study under the stars. Animated.',
+    category: 'structure', kind: 'applied', slot: 'wall', rarity: 'epic', price: 550, Art: S.StarryWall, animated: true, unlockLevel: 3,
+    variants: [
+      { id: 'midnight', name: 'Midnight', colors: { top: '#141c3a', bottom: '#2d3d74', star: '#fff6c8' } },
+      { id: 'aurora', name: 'Aurora', colors: { top: '#0f2a33', bottom: '#2b6b62', star: '#c8fff1' } },
+    ],
+  },
+  {
+    id: 'floor-carpet', name: 'Soft carpet', description: 'Warm underfoot.',
+    category: 'structure', kind: 'applied', slot: 'floor', rarity: 'common', price: 120, Art: S.CarpetFloor,
+    variants: [
+      { id: 'oat', name: 'Oatmeal', colors: { base: '#e6dccb' } },
+      { id: 'sage', name: 'Sage', colors: { base: '#bcd0b8' } },
+      { id: 'blush', name: 'Blush', colors: { base: '#efcfcf' } },
+      { id: 'slate', name: 'Slate', colors: { base: '#8e98a8' } },
+    ],
+  },
+
+  /* ─────────────── FURNITURE ─────────────── */
+  {
+    id: 'beanbag', name: 'Beanbag', description: 'Sink in and revise. Or nap.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
+    rarity: 'common', price: 80, Art: U.Beanbag,
+    variants: [
+      { id: 'cherry', name: 'Cherry', colors: { base: '#e0645c' } },
+      { id: 'teal', name: 'Teal', colors: { base: '#3fa79a' } },
+      { id: 'mustard', name: 'Mustard', colors: { base: '#e3b23c' } },
+      { id: 'lilac', name: 'Lilac', colors: { base: '#b59ae0' } },
+    ],
+  },
+  {
+    id: 'sofa', name: 'Comfy sofa', description: 'Room for you, a friend and a pet.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [2, 1], view: 'front',
+    rarity: 'uncommon', price: 240, Art: U.Sofa,
+    variants: [
+      { id: 'teal', name: 'Teal velvet', colors: { base: '#2f8f87', cushion: '#f2c14e' } },
+      { id: 'mustard', name: 'Mustard', colors: { base: '#d9a63a', cushion: '#e8e2d4' } },
+      { id: 'pink', name: 'Bubblegum', colors: { base: '#e894b4', cushion: '#fff2b3' } },
+      { id: 'navy', name: 'Navy', colors: { base: '#3f5a86', cushion: '#e8875d' } },
+    ],
+  },
+  {
+    id: 'armchair', name: 'Armchair', description: 'A thinking chair for tricky calculations.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
+    rarity: 'uncommon', price: 150, Art: U.Armchair,
+    variants: [
+      { id: 'green', name: 'Forest', colors: { base: '#4f8a5b' } },
+      { id: 'rust', name: 'Rust', colors: { base: '#c2673f' } },
+      { id: 'grey', name: 'Grey', colors: { base: '#8d96a3' } },
+    ],
+  },
+  {
+    id: 'coffee-table', name: 'Coffee table', description: 'Bench-top items can go on it.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front', surface: true, surfaceLift: 20,
+    rarity: 'common', price: 70, Art: U.CoffeeTable,
+    variants: [
+      { id: 'oak', name: 'Oak', colors: { wood: '#c99b65' } },
+      { id: 'walnut', name: 'Walnut', colors: { wood: '#7f5539' } },
+      { id: 'white', name: 'White', colors: { wood: '#eceae4' } },
+    ],
+  },
+  {
+    id: 'desk', name: 'Study desk', description: 'With drawers for your notes. Bench-top items can go on it.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [2, 1], view: 'front', surface: true, surfaceLift: 27,
+    rarity: 'uncommon', price: 160, Art: U.StudyDesk,
+    variants: [
+      { id: 'oak', name: 'Oak', colors: { wood: '#c99b65', knob: '#3a3f4a' } },
+      { id: 'white', name: 'White', colors: { wood: '#eceae4', knob: '#e3b23c' } },
+      { id: 'mint', name: 'Mint', colors: { wood: '#a8d8c4', knob: '#3a3f4a' } },
+    ],
+  },
+  {
+    id: 'bookshelf', name: 'Bookshelf', description: 'Crammed with textbooks and paperbacks.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [2, 1], view: 'front',
+    rarity: 'uncommon', price: 180, Art: U.Bookshelf,
+    variants: [
+      { id: 'oak', name: 'Oak', colors: { wood: '#c99b65' } },
+      { id: 'walnut', name: 'Walnut', colors: { wood: '#7f5539' } },
+      { id: 'teal', name: 'Teal', colors: { wood: '#3f8f88' } },
+    ],
+  },
+  {
+    id: 'floor-lamp', name: 'Floor lamp', description: 'A warm glow for late-night study.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
+    rarity: 'common', price: 90, Art: U.FloorLamp,
+    variants: [
+      { id: 'cream', name: 'Cream', colors: { shade: '#f3ead2', metal: '#3a3f4a', glow: '#ffe2a6' } },
+      { id: 'coral', name: 'Coral', colors: { shade: '#f2907a', metal: '#c9a24a', glow: '#ffd2b8' } },
+      { id: 'sage', name: 'Sage', colors: { shade: '#a9c7a0', metal: '#3a3f4a', glow: '#f1ffd6' } },
+    ],
+  },
+  {
+    id: 'tall-cactus', name: 'Tall cactus', description: 'Prickly, but a good listener.',
+    category: 'furniture', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
+    rarity: 'common', price: 90, Art: U.TallCactus,
+    variants: [
+      { id: 'terracotta', name: 'Terracotta', colors: { pot: '#c96f4a', cactus: '#4e9a5a', flower: '#f27ba5' } },
+      { id: 'white', name: 'White pot', colors: { pot: '#eef0f2', cactus: '#5aa860', flower: '#f6d04d' } },
+    ],
+  },
+  {
+    id: 'round-rug', name: 'Round rug', description: 'Concentric circles, like electron shells.',
+    category: 'furniture', kind: 'placeable', layer: 'rug', size: [2, 2],
+    rarity: 'common', price: 100, Art: U.RoundRug,
+    variants: [
+      { id: 'ocean', name: 'Ocean', colors: { a: '#3f78a8', b: '#9fcbe8' } },
+      { id: 'sunset', name: 'Sunset', colors: { a: '#e07a5f', b: '#f2cc8f' } },
+      { id: 'forest', name: 'Forest', colors: { a: '#4f7d5b', b: '#b8d8a8' } },
+      { id: 'berry', name: 'Berry', colors: { a: '#8e4b88', b: '#e7b6e0' } },
+    ],
+  },
+
+  /* ─────────────── DECOR: cosy extras ─────────────── */
+  {
+    id: 'string-lights', name: 'String lights', description: 'Twinkly fairy lights. Animated.',
+    category: 'decor', kind: 'placeable', layer: 'wall', size: [3, 1], animated: true,
+    rarity: 'uncommon', price: 130, Art: Z.StringLights,
+    variants: [
+      { id: 'rainbow', name: 'Rainbow', colors: { a: '#ff6b6b', b: '#ffd93d', c: '#6bcb77', d: '#4d96ff' } },
+      { id: 'warm', name: 'Warm white', colors: { a: '#ffe9b0', b: '#ffd27a', c: '#fff4d6', d: '#ffc35a' } },
+      { id: 'pastel', name: 'Pastel', colors: { a: '#ffc8dd', b: '#bde0fe', c: '#cdeac0', d: '#fff1a8' } },
+    ],
+  },
+  {
+    id: 'trophy-shelf', name: 'Trophy shelf', description: 'Show off your wins.',
+    category: 'decor', kind: 'placeable', layer: 'wall', size: [2, 1],
+    rarity: 'uncommon', price: 140, Art: Z.TrophyShelf,
+    variants: [
+      { id: 'oak', name: 'Oak', colors: { wood: '#c99b65', ribbon: '#3b82c4' } },
+      { id: 'white', name: 'White', colors: { wood: '#eceae4', ribbon: '#d9534f' } },
+    ],
+  },
+  {
+    id: 'mole-portrait', name: 'Portrait of a Mole', description: 'A very distinguished ancestor.',
+    category: 'decor', kind: 'placeable', layer: 'wall', size: [1, 1],
+    rarity: 'rare', price: 160, Art: Z.MolePortrait,
+    variants: [
+      { id: 'gold', name: 'Gilded', colors: { frame: '#c9a24a', bg: '#3f5a86', tie: '#d9534f' } },
+      { id: 'dark', name: 'Ebony', colors: { frame: '#3a3f4a', bg: '#a8d8c4', tie: '#e3b23c' } },
+    ],
+  },
+  {
+    id: 'corkboard', name: 'Cork board', description: 'Sticky notes and revision reminders.',
+    category: 'decor', kind: 'placeable', layer: 'wall', size: [2, 1],
+    rarity: 'common', price: 60, Art: Z.Corkboard,
+    variants: [{ id: 'notes', name: 'Sticky notes', colors: { a: '#fff59d', b: '#ffcc80', c: '#a5d6a7' } }],
+  },
+  {
+    id: 'bunting', name: 'Bunting', description: 'Every day is a celebration. Animated.',
+    category: 'decor', kind: 'placeable', layer: 'wall', size: [3, 1], animated: true,
+    rarity: 'common', price: 60, Art: Z.Bunting,
+    variants: [
+      { id: 'party', name: 'Party', colors: { a: '#ef476f', b: '#ffd166', c: '#06d6a0' } },
+      { id: 'pastel', name: 'Pastel', colors: { a: '#ffc8dd', b: '#bde0fe', c: '#cdeac0' } },
+      { id: 'green', name: 'Green & gold', colors: { a: '#169b62', b: '#ffffff', c: '#ff883e' } },
+    ],
+  },
+  {
+    id: 'hanging-plant', name: 'Hanging plant', description: 'Trailing leaves that sway. Animated.',
+    category: 'decor', kind: 'placeable', layer: 'wall', size: [1, 1], animated: true,
+    rarity: 'uncommon', price: 80, Art: Z.HangingPlant,
+    variants: [
+      { id: 'terracotta', name: 'Terracotta', colors: { pot: '#c96f4a', leaf: '#4c9a3a' } },
+      { id: 'white', name: 'White', colors: { pot: '#eef0f2', leaf: '#5aa860' } },
+    ],
+  },
+  {
+    id: 'globe', name: 'Globe', description: 'Spins slowly. Animated.',
+    category: 'decor', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
+    rarity: 'uncommon', price: 70, Art: Z.Globe,
+    variants: [
+      { id: 'classic', name: 'Classic', colors: { sea: '#5fa8d3', land: '#7cbf6e', stand: '#c9a24a' } },
+      { id: 'antique', name: 'Antique', colors: { sea: '#e8d9b0', land: '#b88a54', stand: '#6b4a32' } },
+    ],
+  },
+  {
+    id: 'book-stack', name: 'Stack of books', description: 'Definitely all chemistry.',
+    category: 'decor', kind: 'placeable', layer: 'tabletop', size: [1, 1],
+    rarity: 'common', price: 25, Art: Z.BookStack,
+    variants: [
+      { id: 'bright', name: 'Bright', colors: { a: '#d9534f', b: '#3b82c4', c: '#e9b73a' } },
+      { id: 'muted', name: 'Muted', colors: { a: '#7f8c6a', b: '#a0785a', c: '#5b7099' } },
+    ],
+  },
+  {
+    id: 'tea-mug', name: 'Mug of tea', description: 'Steaming hot. Animated.',
+    category: 'decor', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
+    rarity: 'common', price: 20, Art: Z.TeaMug,
+    variants: [
+      { id: 'teal', name: 'Teal mol mug', colors: { mug: '#2f8f87', label: 'mol' } },
+      { id: 'red', name: 'Red pH mug', colors: { mug: '#d9534f', label: 'pH' } },
+      { id: 'navy', name: 'Navy H₂O mug', colors: { mug: '#3f5a86', label: 'H₂O' } },
+    ],
+  },
+  {
+    id: 'firefly-jar', name: 'Firefly jar', description: 'Glowing, harmless, bioluminescent. Animated.',
+    category: 'decor', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
+    rarity: 'rare', price: 140, Art: Z.FireflyJar,
+    variants: [
+      { id: 'gold', name: 'Golden glow', colors: { glow: '#ffe066', lid: '#c9a24a' } },
+      { id: 'mint', name: 'Mint glow', colors: { glow: '#9cffd8', lid: '#3a3f4a' } },
+    ],
+  },
+  {
+    id: 'plush-mole', name: 'Mole plushie', description: 'The official mascot of the mole concept.',
+    category: 'decor', kind: 'placeable', layer: 'tabletop', size: [1, 1],
+    rarity: 'common', price: 50, Art: Z.PlushMole,
+    variants: [
+      { id: 'brown', name: 'Classic', colors: { fur: '#8a6a52', badge: '#0f766e' } },
+      { id: 'pink', name: 'Pink', colors: { fur: '#e8a5b8', badge: '#3b82c4' } },
+      { id: 'blue', name: 'Blue', colors: { fur: '#8fb4e0', badge: '#d9534f' } },
+    ],
+  },
+
+  /* ─────────────── FUN: gadgets ─────────────── */
+  {
+    id: 'record-player', name: 'Record player', description: 'Study beats, spinning. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
+    rarity: 'rare', price: 190, Art: Z.RecordPlayer,
+    variants: [
+      { id: 'wood', name: 'Wood', colors: { body: '#a0785a', label: '#e3b23c' } },
+      { id: 'teal', name: 'Teal', colors: { body: '#2f8f87', label: '#f27ba5' } },
+    ],
+  },
+  {
+    id: 'volcano', name: 'Volcano model', description: 'The classic science-fair eruption. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
+    rarity: 'uncommon', price: 150, Art: Z.Volcano,
+    variants: [
+      { id: 'lava', name: 'Lava', colors: { rock: '#7a5a44', foam: '#ff7a3d' } },
+      { id: 'foam', name: 'Baking-soda foam', colors: { rock: '#6b7480', foam: '#f2f6fa' } },
+    ],
+  },
+  {
+    id: 'retro-tv', name: 'Retro TV', description: 'Only shows chemistry documentaries. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'tabletop', size: [1, 1], animated: true,
+    rarity: 'rare', price: 200, Art: Z.RetroTV,
+    variants: [
+      { id: 'orange', name: 'Orange', colors: { body: '#e8875d', screen: '#4fb3a1' } },
+      { id: 'cream', name: 'Cream', colors: { body: '#efe6d2', screen: '#5b7fd1' } },
+    ],
+  },
+  {
+    id: 'arcade', name: 'Atom Arcade', description: 'A retro arcade cabinet. High score: 6.02 × 10²³. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front', animated: true,
+    rarity: 'epic', price: 650, Art: Z.ArcadeCabinet, unlockLevel: 4,
+    variants: [
+      { id: 'purple', name: 'Purple', colors: { body: '#5b3f9e', marquee: '#ff5fb1' } },
+      { id: 'red', name: 'Red', colors: { body: '#b8323a', marquee: '#ffd166' } },
+      { id: 'black', name: 'Black', colors: { body: '#2b2f3a', marquee: '#3ee6ff' } },
+    ],
+  },
+  {
+    id: 'vending', name: 'Fizz machine', description: 'Carbonated drinks (aqueous CO₂).',
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
+    rarity: 'rare', price: 320, Art: Z.VendingMachine,
+    variants: [
+      { id: 'red', name: 'Red', colors: { body: '#d63c3c' } },
+      { id: 'blue', name: 'Blue', colors: { body: '#2f6fb3' } },
+      { id: 'green', name: 'Green', colors: { body: '#2e8b57' } },
+    ],
+  },
+  {
+    id: 'disco-ball', name: 'Disco ball', description: 'For celebrating a perfect quiz. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'wall', size: [1, 1], animated: true,
+    rarity: 'epic', price: 380, Art: Z.DiscoBall, unlockLevel: 3,
+    variants: [
+      { id: 'pink', name: 'Pink sparkle', colors: { glow: '#ff9bd0' } },
+      { id: 'blue', name: 'Blue sparkle', colors: { glow: '#9bd7ff' } },
+    ],
+  },
+  {
+    id: 'aquarium', name: 'Aquarium', description: 'Two fish and some swaying weed. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [2, 1], view: 'front', animated: true,
+    rarity: 'rare', price: 420, Art: Z.Aquarium,
+    variants: [
+      { id: 'tropical', name: 'Tropical', colors: { water: '#4fb3d9', fish1: '#ff8c42', fish2: '#ffd166', stand: '#3a3f4a' } },
+      { id: 'lagoon', name: 'Lagoon', colors: { water: '#5fd3b5', fish1: '#ef476f', fish2: '#118ab2', stand: '#c99b65' } },
+    ],
+  },
+  {
+    id: 'telescope', name: 'Telescope', description: 'Spectroscopy starts with stargazing.',
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front',
+    rarity: 'rare', price: 260, Art: Z.Telescope,
+    variants: [
+      { id: 'brass', name: 'Brass', colors: { tube: '#c9a24a', band: '#7f5539' } },
+      { id: 'white', name: 'White', colors: { tube: '#eceae4', band: '#3b82c4' } },
+    ],
+  },
+  {
+    id: 'molecule-model', name: 'Giant molecule model', description: 'A slowly rotating sculpture. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front', animated: true,
+    rarity: 'rare', price: 300, Art: Z.MoleculeSculpture,
+    variants: [
+      { id: 'cpk', name: 'Classic colours', colors: { a: '#3a3f4a', b: '#f4f4f4', c: '#d9534f' } },
+      { id: 'neon', name: 'Neon', colors: { a: '#7b3fd6', b: '#3ee6ff', c: '#a6ff4d' } },
+    ],
+  },
+  {
+    id: 'lab-bot', name: 'Lab-bot', description: 'A friendly helper robot that blinks at you. Animated.',
+    category: 'fun', kind: 'placeable', layer: 'floor', size: [1, 1], view: 'front', animated: true,
+    rarity: 'epic', price: 750, Art: Z.LabBot, unlockLevel: 5,
+    variants: [
+      { id: 'white', name: 'White', colors: { body: '#e9eef2', eye: '#3ee6ff' } },
+      { id: 'yellow', name: 'Yellow', colors: { body: '#f2c94c', eye: '#a6ff4d' } },
+      { id: 'pink', name: 'Pink', colors: { body: '#f2a9c4', eye: '#ffffff' } },
+    ],
+  },
+
+  /* ─────────────── PETS ───────────────
+     Roaming pets (kind: 'pet') wander the floor of the room they live in.
+     Tank pets are placeables with a `pet` field: they sit on benches but can still be named. */
+  {
+    id: 'pet-rat', name: 'Lab rat', description: 'Clever, curious and very good at mazes.',
+    category: 'pets', kind: 'pet', rarity: 'rare', price: 300, Art: P.RatPet, animated: true,
+    pet: pet(['*sniff sniff*', 'Is that cheese or CaCO₃?', 'I solved the maze! Now you solve the equation.', 'Squeak! (that means "nice work")']),
+    variants: [
+      { id: 'white', name: 'White', colors: { fur: '#f4f2ee', eye: '#d64b6a' } },
+      { id: 'grey', name: 'Grey', colors: { fur: '#a9a6b3', eye: '#2b2233' } },
+      { id: 'brown', name: 'Brown', colors: { fur: '#b08462', eye: '#2b2233' } },
+    ],
+  },
+  {
+    id: 'pet-hamster', name: 'Hamster', description: 'Small, round and stores snacks in its cheeks.',
+    category: 'pets', kind: 'pet', rarity: 'uncommon', price: 200, Art: P.HamsterPet, animated: true,
+    pet: pet(['*stuffs cheeks*', 'I ran 5 km on my wheel today!', 'Moles? I prefer seeds.', 'Pat pat pat!'], 1.4),
+    variants: [
+      { id: 'golden', name: 'Golden', colors: { fur: '#e9a65a', belly: '#fbe8cf' } },
+      { id: 'white', name: 'Snowy', colors: { fur: '#f1eee8', belly: '#ffffff' } },
+      { id: 'grey', name: 'Grey', colors: { fur: '#9b9aa6', belly: '#e6e4ea' } },
+    ],
+  },
+  {
+    id: 'pet-frog', name: 'Frog', description: 'An amphibian with excellent jumping technique.',
+    category: 'pets', kind: 'pet', rarity: 'uncommon', price: 220, Art: P.FrogPet, animated: true,
+    pet: pet(['Ribbit.', 'I breathe through my skin. Diffusion!', 'Fancy a hop?', '*blinks slowly*'], 1.1),
+    variants: [
+      { id: 'green', name: 'Tree frog', colors: { skin: '#6cc04a', belly: '#e9f5c8', spots: '' } },
+      { id: 'blue', name: 'Dart frog', colors: { skin: '#3a7bd5', belly: '#9cc3f2', spots: '#1d2230' } },
+      { id: 'pink', name: 'Bubblegum', colors: { skin: '#f29bb5', belly: '#fde2ea', spots: '#e06a8f' } },
+    ],
+  },
+  {
+    id: 'pet-bunny', name: 'Bunny', description: 'Fluffy, floppy and fond of carrots.',
+    category: 'pets', kind: 'pet', rarity: 'rare', price: 350, Art: P.BunnyPet, animated: true,
+    pet: pet(['*twitches nose*', 'Carrots contain β-carotene!', 'Boing!', 'You are some-bunny special.'], 1.3),
+    variants: [
+      { id: 'white', name: 'White', colors: { fur: '#f6f4f0' } },
+      { id: 'brown', name: 'Brown', colors: { fur: '#b58763' } },
+      { id: 'grey', name: 'Grey', colors: { fur: '#a7a9b4' } },
+    ],
+  },
+  {
+    id: 'pet-hedgehog', name: 'Hedgehog', description: 'Spiky outside, soft inside.',
+    category: 'pets', kind: 'pet', rarity: 'rare', price: 400, Art: P.HedgehogPet, animated: true,
+    pet: pet(['*snuffle*', 'My spines are made of keratin.', 'Hug me carefully!', 'Let’s go bug hunting.'], 0.9),
+    variants: [
+      { id: 'brown', name: 'Classic', colors: { spines: '#7a5a44', face: '#ead7bf' } },
+      { id: 'pale', name: 'Pale', colors: { spines: '#c9b8a2', face: '#fbf1e4' } },
+    ],
+  },
+  {
+    id: 'pet-tortoise', name: 'Tortoise', description: 'Slow and steady wins the exam. Has a benzene-ring shell.',
+    category: 'pets', kind: 'pet', rarity: 'rare', price: 450, Art: P.TortoisePet, animated: true,
+    pet: pet(['…', 'Take your time. I always do.', 'My shell is mostly keratin and bone.', 'Slow and steady, friend.'], 0.4),
+    variants: [
+      { id: 'olive', name: 'Olive', colors: { shell: '#8a9a4a', skin: '#b9c28a' } },
+      { id: 'amber', name: 'Amber', colors: { shell: '#b8803a', skin: '#d8c08a' } },
+    ],
+  },
+  {
+    id: 'pet-cat', name: 'Cat', description: 'Will sit on your notes the moment you open them.',
+    category: 'pets', kind: 'pet', rarity: 'epic', price: 600, Art: P.CatPet, animated: true, unlockLevel: 3,
+    pet: pet(['Mrrp?', 'I knocked a beaker off the bench. Sorry.', 'Purrrrr…', 'Feed me. Then study.'], 1.2),
+    variants: [
+      { id: 'ginger', name: 'Ginger', colors: { fur: '#e8954a', belly: '#fbe2c4', eye: '#3a7a3a', patch: '' } },
+      { id: 'black', name: 'Black', colors: { fur: '#3a3a44', belly: '#55555f', eye: '#e3b23c', patch: '' } },
+      { id: 'calico', name: 'Calico', colors: { fur: '#f6f1ea', belly: '#ffffff', eye: '#3a7a3a', patch: '#e8954a' } },
+      { id: 'grey', name: 'Grey tabby', colors: { fur: '#9ba0aa', belly: '#e1e3e8', eye: '#3b82c4', patch: '#6d727c' } },
+    ],
+  },
+  {
+    id: 'pet-puppy', name: 'Puppy', description: 'Always happy to see you. Especially after a quiz.',
+    category: 'pets', kind: 'pet', rarity: 'epic', price: 600, Art: P.PuppyPet, animated: true, unlockLevel: 3,
+    pet: pet(['Woof!', 'Walk? Walk?! WALK?!', 'You’re the best scientist ever!', '*wags tail at 6 Hz*'], 1.5),
+    variants: [
+      { id: 'golden', name: 'Golden', colors: { fur: '#e2b06a', belly: '#f8e6c6', ear: '#c98f4a', collar: '#d9534f', spots: '' } },
+      { id: 'brown', name: 'Chocolate', colors: { fur: '#8a5a3a', belly: '#c49a74', ear: '#6b4228', collar: '#3b82c4', spots: '' } },
+      { id: 'spotty', name: 'Spotty', colors: { fur: '#f6f4f0', belly: '#ffffff', ear: '#3a3a44', collar: '#e3b23c', spots: '#3a3a44' } },
+    ],
+  },
+  {
+    id: 'pet-goldfish', name: 'Goldfish (in a bowl)', description: 'A tiny pet for your bench. Goes on a bench, desk or table.',
+    category: 'pets', kind: 'placeable', layer: 'tabletop', size: [1, 1], rarity: 'common', price: 120, Art: P.GoldfishBowl, animated: true,
+    pet: pet(['blub', 'blub blub', 'I forgot what I was saying… blub.', 'Dissolved O₂ levels: excellent.'], 0, 'tank'),
+    variants: [
+      { id: 'orange', name: 'Orange', colors: { fish: '#ff8c42', water: '#7fc8e8' } },
+      { id: 'white', name: 'White', colors: { fish: '#f6efe6', water: '#7fc8e8' } },
+    ],
+  },
+  {
+    id: 'pet-axolotl', name: 'Axolotl (in a tank)', description: 'Smiles permanently. Goes on a bench, desk or table.',
+    category: 'pets', kind: 'placeable', layer: 'tabletop', size: [1, 1], rarity: 'epic', price: 500, Art: P.AxolotlTank, animated: true, unlockLevel: 5,
+    pet: pet(['*smiles*', 'I can regrow my legs. Can you balance a redox equation?', 'Gills out, good vibes.', ':)'], 0, 'tank'),
+    variants: [
+      { id: 'pink', name: 'Pink', colors: { body: '#f7b4c8', gills: '#e0607e', water: '#8fd3e8' } },
+      { id: 'gold', name: 'Golden', colors: { body: '#f6d58a', gills: '#e39a3a', water: '#8fd3e8' } },
+      { id: 'dark', name: 'Wild', colors: { body: '#6b6f5a', gills: '#9b5a6a', water: '#7fbfa8' } },
     ],
   },
 
@@ -419,6 +835,10 @@ export const shopItems: ShopItem[] = [
     ],
   },
 ];
+
+function pet(sayings: string[], speed = 1, habitat: PetInfo['habitat'] = 'roam'): PetInfo {
+  return { sayings, speed, habitat };
+}
 
 const byId = new Map(shopItems.map((i) => [i.id, i]));
 export const getItem = (id: string): ShopItem | undefined => byId.get(id);

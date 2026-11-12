@@ -94,3 +94,55 @@ describe('migrations', () => {
     expect(() => migrate({ hello: 1 })).toThrow(SaveFormatError);
   });
 });
+
+describe('pets', () => {
+  it('adopting names the pet and puts it in the current room', () => {
+    S().mutate((d) => (d.profile.moles = 5000));
+    const r = S().buy('pet-hamster', 'golden', { name: '  Boron  ' });
+    expect(r.ok).toBe(true);
+    const pet = S().save.inventory.find((o) => o.uid === r.uid)!;
+    expect(pet).toMatchObject({ name: 'Boron', room: 'starter', pats: 0 });
+    expect(S().save.achievements['first-pet']).toBeTruthy();
+  });
+
+  it('first pat each day pays a bonus, later pats only add hearts', () => {
+    S().mutate((d) => (d.profile.moles = 5000));
+    const { uid } = S().buy('pet-frog', 'green', { name: 'Fizz' });
+    const before = S().save.profile.moles;
+    expect(S().patPet(uid!).bonus).toBe(economy.dailyPatMoles);
+    expect(S().patPet(uid!).bonus).toBe(0);
+    expect(S().save.profile.moles).toBe(before + economy.dailyPatMoles);
+    expect(S().save.inventory.find((o) => o.uid === uid)!.pats).toBe(2);
+  });
+
+  it('pets cannot be sold', () => {
+    S().mutate((d) => (d.profile.moles = 5000));
+    const { uid } = S().buy('pet-goldfish', 'orange', { name: 'Blub' });
+    expect(S().sell(uid!)).toBe(0);
+    expect(S().save.inventory.some((o) => o.uid === uid)).toBe(true);
+  });
+
+  it('pet hotel survives a save round-trip', () => {
+    S().mutate((d) => (d.profile.moles = 5000));
+    const { uid } = S().buy('pet-bunny', 'white', { name: 'Hop' });
+    S().setPetRoom(uid!, 'hotel');
+    const reloaded = migrate(JSON.parse(S().exportSave()));
+    expect(reloaded.inventory.find((o) => o.uid === uid)!.room).toBe('hotel');
+  });
+
+  it('legacy placed lab rats become named roaming pets', () => {
+    const s = createNewSave();
+    s.inventory.push({ uid: 'oldrat', itemId: 'pet-rat', variant: 'white' });
+    s.lab.rooms.starter.placed.push({ uid: 'oldrat', x: 5, y: 5, rot: 0 });
+    const m = migrate(JSON.parse(JSON.stringify(s)));
+    expect(m.inventory.find((o) => o.uid === 'oldrat')).toMatchObject({ name: 'Pip', room: 'starter' });
+    expect(m.lab.rooms.starter.placed.some((p) => p.uid === 'oldrat')).toBe(false);
+  });
+
+  it('rooms can be renamed and reset', () => {
+    S().renameRoom('starter', '  The Mole Hole ');
+    expect(S().save.lab.rooms.starter.name).toBe('The Mole Hole');
+    S().renameRoom('starter', '');
+    expect(S().save.lab.rooms.starter.name).toBeUndefined();
+  });
+});

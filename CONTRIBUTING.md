@@ -148,7 +148,19 @@ That's all. The topic picker, stats, mastery bars, bank manager counts, editor d
    - `kind: 'applied'` items have a `slot`: `floor`, `wall` or `lighting` (room style) or `coat`, `goggles` or `gloves` (avatar). A lighting variant's colours should include `tint` and `tintOpacity` for the room overlay.
    - `category` decides the shop tab; `rarity` is one of `common | uncommon | rare | epic | legendary`.
 
+   - **Front-view furniture** (sofas, shelves, gadgets): set `view: 'front'`. These are drawn standing up, can be **flipped** (F key) instead of rotated, and may be taller than their tile.
+   - **Surfaces:** `surface: true` lets bench-top items sit on it. For front-view tables and desks, set `surfaceLift` (px) so items sit on the visible top.
+
 No other file needs changing.
+
+### Adding a pet
+
+Pets are shop items with a `pet` field: `{ sayings: string[], habitat: 'roam' | 'tank', speed?: number }`.
+
+- **Roaming pets** (`kind: 'pet'`, `category: 'pets'`) wander the free floor tiles of the room they live in. Draw them in `src/content/shop/art/pets.tsx` as a ~48 px front/side sprite **facing right**, standing on `h - 6`. The lab mirrors them when they walk left and adds the walking bob, so the art only needs idle animation (blinks, tails). `speed` is tiles per second.
+- **Tank pets** are normal `kind: 'placeable'`, `layer: 'tabletop'` items with `pet: { …, habitat: 'tank' }`.
+- Players name pets when adopting. Tapping a pet shows a speech bubble with a random line from `sayings`, adds a pat (hearts at 3/10/25/50/100 pats, see `src/lib/pets.ts`), and the first pat each day pays `economy.dailyPatMoles`. Pets can't be sold. Roaming pets can move between rooms or rest at the "pet hotel" (`room: 'hotel'`).
+- Name suggestions live in `PET_NAMES` in `src/lib/pets.ts`.
 
 ---
 

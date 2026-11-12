@@ -43,7 +43,7 @@ The build is static and uses relative paths plus hash routing (`#/lab`), so it w
 | Game modes: Topic Quiz, Focus Timer, Daily Review, plus 5 "Coming soon" stubs | `src/modes/` (registered in `src/modes/registry.ts`) |
 | Topics | `src/content/topics.ts` |
 | Question banks (built-in) | `src/content/banks/*.json` (`sample.json` is the test bank; `_template.json` is the template) |
-| Shop catalogue (43 items) and art | `src/content/shop/items.ts`, `src/content/shop/art/` |
+| Shop catalogue (85 items incl. 10 pets) and art | `src/content/shop/items.ts`, `src/content/shop/art/` |
 | Economy: prices, rewards, levels, rooms | `src/content/economy.ts` |
 | Achievements | `src/content/achievements.ts` |
 | Pure game logic (tested) | `src/engine/` (answer checking, chem formatter, validation, CSV, Leitner boxes, economy, lab grid) |

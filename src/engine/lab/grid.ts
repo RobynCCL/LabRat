@@ -16,6 +16,8 @@ export interface Placed {
   x: number;
   y: number;
   rot: Rot;
+  /** Mirror front-view sprites horizontally. */
+  flip?: boolean;
 }
 
 export interface ItemMeta {
@@ -116,7 +118,7 @@ export function moveItem(
   if (!cur || !m) return null;
   const riders = m.surface ? itemsOn(placed, uid, meta) : [];
   const riderSet = new Set(riders);
-  const cand: Placed = { uid, ...to };
+  const cand: Placed = { ...cur, uid, ...to };
   if (placementProblem(room, placed, cand, meta, riderSet)) return null;
 
   const old = footprint(m, cur.rot);

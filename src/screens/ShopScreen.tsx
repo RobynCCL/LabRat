@@ -1,19 +1,23 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ownsApplied, useGame, useLevel } from '@/store/game';
 import { shopItems } from '@/content/shop/items';
 import { CATEGORIES, RARITIES, type Category, type ShopItem } from '@/content/shop/types';
 import { ItemPreview } from '@/components/ItemPreview';
 import { Avatar } from '@/components/Avatar';
-import { Button, Card, Icon, Moles, PageHeader, RarityTag, Segmented } from '@/components/ui';
+import { Button, Card, Icon, IconButton, Modal, Moles, PageHeader, RarityTag, Segmented } from '@/components/ui';
+import { cleanName, suggestName } from '@/lib/pets';
 import { play } from '@/lib/sound';
 import { toast } from '@/lib/events';
 
 type Sort = 'price' | 'rarity';
 
 export default function ShopScreen() {
-  const [cat, setCat] = useState<Category>('equipment');
+  const [params, setParams] = useSearchParams();
+  const fromUrl = params.get('tab') as Category | null;
+  const cat: Category = fromUrl && CATEGORIES.some((c) => c.id === fromUrl) ? fromUrl : 'furniture';
+  const setCat = (c: Category) => setParams({ tab: c }, { replace: true });
   const [sort, setSort] = useState<Sort>('price');
   const items = shopItems
     .filter((i) => i.category === cat)
@@ -46,7 +50,7 @@ export default function ShopScreen() {
               className={`rounded-xl px-4 py-2 text-left transition ${cat === c.id ? 'bg-primary text-primary-ink shadow-press' : 'bg-surface text-ink shadow-soft hover:bg-surface-2'}`}
             >
               <div className="font-bold">{c.label}</div>
-              <div className={`text-xs ${cat === c.id ? 'opacity-85' : 'text-muted'}`}>{c.blurb}</div>
+              <div className={`hidden text-xs 2xl:block ${cat === c.id ? 'opacity-85' : 'text-muted'}`}>{c.blurb}</div>
             </button>
           ))}
         </div>
@@ -77,10 +81,12 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
   const { buy, equip } = useGame.getState();
   const [variant, setVariant] = useState(item.variants[0].id);
   const [hover, setHover] = useState(false);
+  const [adopting, setAdopting] = useState(false);
   const v = item.variants.find((x) => x.id === variant)!;
   const locked = !!item.unlockLevel && level < item.unlockLevel;
   const owns = item.kind === 'applied' ? ownsApplied(save, item, variant) : false;
-  const ownedCount = item.kind === 'placeable' ? save.inventory.filter((o) => o.itemId === item.id).length : 0;
+  const owned = item.kind !== 'applied' ? save.inventory.filter((o) => o.itemId === item.id) : [];
+  const ownedCount = owned.length;
   const affordable = save.profile.moles >= item.price;
 
   let equipped = false;
@@ -90,15 +96,22 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
     equipped = !!ref && ref.itemId === item.id && ref.variant === variant;
   }
 
-  const onBuy = () => {
-    const r = buy(item.id, variant);
+  const onBuy = (name?: string) => {
+    if (item.pet && name === undefined) {
+      setAdopting(true);
+      return;
+    }
+    const r = buy(item.id, variant, { name });
     if (!r.ok) {
       play('error');
       toast(r.reason ?? 'Could not buy that', 'bad');
       return;
     }
     play('buy');
-    if (item.kind === 'applied') {
+    if (item.pet) {
+      setAdopting(false);
+      toast(item.kind === 'pet' ? `Welcome home, ${cleanName(name ?? '') || item.name}! Say hi in your lab.` : `${cleanName(name ?? '') || item.name} is in storage. Put the tank on a bench in Decorate mode.`, 'good');
+    } else if (item.kind === 'applied') {
       equip(item.slot, { itemId: item.id, variant });
       toast(`${item.name} (${v.name}) unlocked and applied!`, 'good');
     } else toast(`${item.name} added to storage. Place it in Decorate mode.`, 'good');
@@ -119,7 +132,11 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
             </span>
           )}
         </div>
-        {item.kind === 'placeable' && ownedCount > 0 && <span className="absolute right-3 top-3 chip">Owned ×{ownedCount}</span>}
+        {ownedCount > 0 && (
+          <span className="absolute right-3 top-3 max-w-[45%] truncate chip" title={owned.map((o) => o.name).join(', ')}>
+            {item.pet ? owned.map((o) => o.name).join(', ') : `Owned ×${ownedCount}`}
+          </span>
+        )}
         {locked && (
           <div className="absolute inset-0 grid place-items-center bg-surface/70 backdrop-blur-[1px]">
             <span className="flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-sm font-bold text-bg">
@@ -131,6 +148,7 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-display text-lg font-semibold leading-tight">{item.name}</h3>
+          {item.kind === 'pet' && <span className="chip shrink-0">Roams free</span>}
           {item.kind === 'placeable' && (
             <span className="chip shrink-0" title="Size in tiles">
               {item.layer === 'wall' ? 'Wall' : item.layer === 'tabletop' ? 'Bench-top' : item.layer === 'rug' ? 'Rug' : `${item.size[0]}×${item.size[1]}`}
@@ -171,12 +189,62 @@ function ItemCard({ item, i }: { item: ShopItem; i: number }) {
               {equipped ? (item.category === 'avatar' ? 'Wearing' : 'Applied') : item.category === 'avatar' ? 'Wear' : 'Apply'}
             </Button>
           ) : (
-            <Button size="sm" icon="bag" disabled={locked || !affordable} onClick={onBuy} silent>
-              {affordable ? 'Buy' : 'Need more'}
+            <Button size="sm" icon={item.pet ? 'heart' : 'bag'} disabled={locked || !affordable} onClick={() => onBuy()} silent>
+              {!affordable ? 'Need more' : item.pet ? 'Adopt' : 'Buy'}
             </Button>
           )}
         </div>
       </div>
+      {item.pet && <AdoptModal open={adopting} onClose={() => setAdopting(false)} item={item} variant={variant} onAdopt={(n) => onBuy(n)} />}
     </motion.div>
+  );
+}
+
+function AdoptModal({ open, onClose, item, variant, onAdopt }: { open: boolean; onClose: () => void; item: ShopItem; variant: string; onAdopt: (name: string) => void }) {
+  const taken = useGame((g) => g.save.inventory.map((o) => o.name ?? ''));
+  const [name, setName] = useState('');
+  const v = item.variants.find((x) => x.id === variant);
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`Adopt a ${item.name.toLowerCase().replace(/ \(.*\)$/, '')}`}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Not yet
+          </Button>
+          <Button icon="heart" disabled={!cleanName(name)} onClick={() => onAdopt(cleanName(name))}>
+            Adopt for {item.price} mol
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col items-center gap-4 sm:flex-row">
+        <div className="rounded-2xl bg-surface-2 p-2">
+          <ItemPreview item={item} variant={variant} size={120} anim />
+        </div>
+        <div className="w-full flex-1">
+          <p className="text-sm text-muted">
+            {v?.name} · {item.description}
+          </p>
+          <label className="mt-3 block">
+            <span className="label">What will you call them?</span>
+            <div className="flex gap-1">
+              <input
+                className="input"
+                maxLength={16}
+                value={name}
+                placeholder="e.g. Boron"
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && cleanName(name) && onAdopt(cleanName(name))}
+              />
+              <IconButton icon="sparkles" label="Suggest a name" onClick={() => setName(suggestName(taken))} />
+            </div>
+          </label>
+          <p className="mt-2 text-xs text-muted">You can rename them later from the Pets list in your lab.</p>
+        </div>
+      </div>
+    </Modal>
   );
 }

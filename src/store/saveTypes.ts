@@ -12,9 +12,20 @@ export interface ItemRef {
 export interface OwnedItem extends ItemRef {
   /** Unique per purchased copy. */
   uid: string;
+  /** Pets: the name you gave them. */
+  name?: string;
+  /** Roaming pets: the room id they live in, or 'hotel' when resting at the pet hotel. */
+  room?: string;
+  /** Pets: how many times you've patted them. */
+  pats?: number;
+  /** Pets: day (YYYY-MM-DD) of the last pat that paid the daily bonus. */
+  lastPatDay?: string;
+  adoptedAt?: number;
 }
 
 export interface RoomState {
+  /** Custom room name (falls back to the room's default name). */
+  name?: string;
   placed: Placed[];
   floor: ItemRef;
   wall: ItemRef;

@@ -12,6 +12,7 @@ import type { Placed } from '@/engine/lab/grid';
 import { emit } from '@/lib/events';
 import { newId } from '@/lib/id';
 import { buildPool, topicIndex } from '@/lib/questionPool';
+import { cleanName } from '@/lib/pets';
 import { createNewSave, emptyRoom } from './defaults';
 import { migrate } from './migrations';
 import { clearRaw, loadRaw, saveRaw } from './persistence';
@@ -42,7 +43,12 @@ interface GameStore {
   reviewAnswer(uid: string, correct: boolean): void;
   completeReview(): void;
 
-  buy(itemId: string, variant: string): { ok: boolean; reason?: string; uid?: string };
+  buy(itemId: string, variant: string, opts?: { name?: string }): { ok: boolean; reason?: string; uid?: string };
+  renameItem(uid: string, name: string): void;
+  patPet(uid: string): { bonus: number };
+  /** Move a roaming pet to a room, or 'hotel' to rest it. */
+  setPetRoom(uid: string, roomId: string): void;
+  renameRoom(roomId: string, name: string): void;
   equip(slot: 'floor' | 'wall' | 'lighting' | 'coat' | 'goggles' | 'gloves', ref: ItemRef | null): void;
   setPlaced(roomId: string, placed: Placed[]): void;
   sell(uid: string): number;
@@ -237,7 +243,7 @@ export const useGame = create<GameStore>((set, get) => {
       });
     },
 
-    buy(itemId, variant) {
+    buy(itemId, variant, opts) {
       const save = get().save;
       const item = getItem(itemId);
       if (!item || !item.variants.some((v) => v.id === variant)) return { ok: false, reason: 'Unknown item.' };
@@ -250,6 +256,16 @@ export const useGame = create<GameStore>((set, get) => {
         d.profile.moles -= item.price;
         d.stats.itemsBought++;
         if (item.kind === 'applied') (d.unlocked[item.id] ??= []).push(variant);
+        else if (item.pet)
+          d.inventory.push({
+            uid,
+            itemId,
+            variant,
+            name: cleanName(opts?.name ?? '') || item.name,
+            pats: 0,
+            adoptedAt: Date.now(),
+            ...(item.kind === 'pet' ? { room: d.lab.current } : {}),
+          });
         else d.inventory.push({ uid, itemId, variant });
       });
       return { ok: true, uid };
@@ -273,10 +289,53 @@ export const useGame = create<GameStore>((set, get) => {
       });
     },
 
+    renameItem(uid, name) {
+      const n = cleanName(name);
+      if (!n) return;
+      commit((d) => {
+        const o = d.inventory.find((i) => i.uid === uid);
+        if (o) o.name = n;
+      });
+    },
+
+    patPet(uid) {
+      let bonus = 0;
+      commit((d, ev) => {
+        const o = d.inventory.find((i) => i.uid === uid);
+        if (!o) return;
+        o.pats = (o.pats ?? 0) + 1;
+        const today = toDay();
+        if (o.lastPatDay !== today) {
+          o.lastPatDay = today;
+          bonus = economy.dailyPatMoles;
+          grantInto(d, { moles: bonus, xp: 0 }, ev);
+          const label = `${o.name ?? 'Your pet'} is happy!`; // read now: the draft is revoked after commit
+          ev.unshift(() => emit('reward', { moles: bonus, xp: 0, label }));
+        }
+      });
+      return { bonus };
+    },
+
+    setPetRoom(uid, roomId) {
+      commit((d) => {
+        const o = d.inventory.find((i) => i.uid === uid);
+        if (o) o.room = d.lab.unlockedRooms.includes(roomId) ? roomId : 'hotel';
+      });
+    },
+
+    renameRoom(roomId, name) {
+      commit((d) => {
+        const r = (d.lab.rooms[roomId] ??= emptyRoom());
+        const n = name.replace(/\s+/g, ' ').trim().slice(0, 28);
+        if (n) r.name = n;
+        else delete r.name;
+      });
+    },
+
     sell(uid) {
       const own = get().save.inventory.find((i) => i.uid === uid);
       const item = own && getItem(own.itemId);
-      if (!own || !item) return 0;
+      if (!own || !item || item.pet) return 0; // pets are never sold
       const refund = sellPrice(item.price);
       commit((d) => {
         d.inventory = d.inventory.filter((i) => i.uid !== uid);

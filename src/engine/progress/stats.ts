@@ -16,7 +16,9 @@ export type StatKey =
   | 'itemsBought'
   | 'molesEarned'
   | 'level'
-  | 'topicsMastered';
+  | 'topicsMastered'
+  | 'petsAdopted'
+  | 'petPats';
 
 /** uid lists per topic, from the enabled question pool. */
 export type TopicIndex = Record<string, string[]>;
@@ -44,6 +46,8 @@ export function computeStats(save: SaveData, index: TopicIndex): Record<StatKey,
     molesEarned: save.profile.molesEarned,
     level: levelFromXp(save.profile.xp).level,
     topicsMastered: mastered,
+    petsAdopted: save.inventory.filter((i) => i.name !== undefined && i.adoptedAt !== undefined).length,
+    petPats: save.inventory.reduce((n, i) => n + (i.pats ?? 0), 0),
   };
 }
 

@@ -9,6 +9,7 @@ import { currentStreak, dueCards, toDay } from '@/engine/srs/leitner';
 import { topicSummaries } from '@/engine/progress/stats';
 import { Avatar } from '@/components/Avatar';
 import { RoomView } from '@/components/lab/RoomView';
+import { usePetWander } from '@/components/lab/usePetWander';
 import { Button, Card, Icon, Moles, ProgressBar, TopicBadge } from '@/components/ui';
 import { useReducedMotion } from '@/App';
 
@@ -30,6 +31,8 @@ export default function HomeScreen() {
   const summaries = useMemo(() => topicSummaries(save, index, topics.map((t) => t.id)).filter((s) => s.questionCount > 0), [save, index]);
   const inv = useMemo(() => new Map(save.inventory.map((i) => [i.uid, i])), [save.inventory]);
   const roomDef = economy.rooms.find((r) => r.id === save.lab.current) ?? economy.rooms[0];
+  const room = save.lab.rooms[save.lab.current];
+  const pets = usePetWander(save.lab.current, { cols: roomDef.cols, rows: roomDef.rows }, room, save.inventory, !reduce);
   const recent = Object.entries(save.achievements)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
@@ -116,8 +119,10 @@ export default function HomeScreen() {
         <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between px-5 pt-4">
             <div>
-              <h2 className="font-semibold">{roomDef.name}</h2>
-              <p className="text-sm text-muted">{save.lab.rooms[save.lab.current]?.placed.length ?? 0} items on display</p>
+              <h2 className="font-semibold">{room.name || roomDef.name}</h2>
+              <p className="text-sm text-muted">
+                {room.placed.length} items{pets.length ? ` · ${pets.map((p) => p.name).join(', ')}` : ''}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Moles amount={save.profile.moles} />
@@ -129,7 +134,7 @@ export default function HomeScreen() {
             </div>
           </div>
           <Link to="/lab" className="block p-3" aria-label="Open your lab" style={{ background: 'var(--lab-bg)' }}>
-            <RoomView cols={roomDef.cols} rows={roomDef.rows} room={save.lab.rooms[save.lab.current]} inventory={inv} anim={!reduce} className="mx-auto block h-auto w-full max-w-2xl" />
+            <RoomView cols={roomDef.cols} rows={roomDef.rows} room={room} inventory={inv} pets={pets} anim={!reduce} className="mx-auto block h-auto w-full max-w-xl" />
           </Link>
         </Card>
       </motion.div>

@@ -220,3 +220,65 @@ export function NeonStrip({ w, c, anim }: ArtProps) {
     </g>
   );
 }
+
+/* ───────────── Extra wallpapers & floors ───────────── */
+
+export function StripedWall({ w, h, c }: ArtProps) {
+  const id = useSvgId('stripe');
+  return (
+    <g>
+      <defs>
+        <pattern id={id} width={24} height={h} patternUnits="userSpaceOnUse">
+          <rect width={24} height={h} fill={c.a} />
+          <rect width={10} height={h} fill={c.b} />
+          <rect x={12} width={2} height={h} fill={c.b} opacity={0.5} />
+        </pattern>
+      </defs>
+      <rect width={w} height={h} fill={`url(#${id})`} />
+      <rect y={h * 0.55} width={w} height={6} fill={shade(c.b, -0.15)} />
+      <rect y={h * 0.55 + 6} width={w} height={h * 0.45} fill={c.a} />
+      <rect y={h - 10} width={w} height={10} fill={shade(c.b, -0.35)} />
+      <rect y={h - 10} width={w} height={2} fill="rgba(255,255,255,0.35)" />
+    </g>
+  );
+}
+
+export function StarryWall({ w, h, c, anim }: ArtProps) {
+  const id = useSvgId('stars');
+  const stars = Array.from({ length: Math.floor(w / 14) }, (_, i) => [(i * 53.3) % w, 8 + ((i * 37.7) % (h - 26)), i % 3]);
+  return (
+    <g>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={c.top} />
+          <stop offset="1" stopColor={c.bottom} />
+        </linearGradient>
+      </defs>
+      <rect width={w} height={h} fill={`url(#${id})`} />
+      {stars.map(([x, y, k], i) => (
+        <circle key={i} cx={x} cy={y} r={k === 0 ? 1.4 : 0.8} fill={c.star}>
+          {anim && k === 0 && <animate attributeName="opacity" values="1;0.3;1" dur={`${2 + (i % 4)}s`} repeatCount="indefinite" />}
+        </circle>
+      ))}
+      <circle cx={w * 0.82} cy={22} r={9} fill={c.star} opacity={0.9} />
+      <circle cx={w * 0.82 + 4} cy={19} r={8} fill={c.top} />
+      <rect y={h - 10} width={w} height={10} fill={shade(c.bottom, -0.3)} />
+    </g>
+  );
+}
+
+export function CarpetFloor({ w, h, c }: ArtProps) {
+  const id = useSvgId('carpet');
+  return (
+    <g>
+      <defs>
+        <pattern id={id} width={12} height={12} patternUnits="userSpaceOnUse">
+          <rect width={12} height={12} fill={c.base} />
+          <circle cx={3} cy={3} r={0.8} fill={shade(c.base, -0.08)} />
+          <circle cx={9} cy={9} r={0.8} fill={shade(c.base, 0.08)} />
+        </pattern>
+      </defs>
+      <rect width={w} height={h} fill={`url(#${id})`} />
+    </g>
+  );
+}

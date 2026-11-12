@@ -81,3 +81,11 @@ describe('lab grid', () => {
     expect(findSpot(room, placed, 'flask', meta)).toMatchObject({ x: 0, y: 0 });
   });
 });
+
+describe('flip', () => {
+  it('moving keeps a flipped sprite flipped', () => {
+    const placed: Placed[] = [{ uid: 'stool', x: 0, y: 0, rot: 0, flip: true }];
+    const moved = moveItem(room, placed, 'stool', { x: 2, y: 1, rot: 0 }, meta)!;
+    expect(moved[0]).toMatchObject({ x: 2, y: 1, flip: true });
+  });
+});

@@ -28,5 +28,8 @@ export const achievements: Achievement[] = [
   { id: 'centurion', name: 'Centurion', description: 'Answer 100 questions correctly.', stat: 'correct', gte: 100, reward: 120, icon: 'trophy' },
   { id: 'collector', name: 'Collector', description: 'Buy 10 items from the shop.', stat: 'itemsBought', gte: 10, reward: 80, icon: 'bag' },
   { id: 'level-5', name: 'Rising Chemist', description: 'Reach level 5.', stat: 'level', gte: 5, reward: 100, icon: 'badge' },
+  { id: 'first-pet', name: 'New Best Friend', description: 'Adopt and name your first pet.', stat: 'petsAdopted', gte: 1, reward: 40, icon: 'heart' },
+  { id: 'pet-family', name: 'Happy Family', description: 'Adopt 3 pets.', stat: 'petsAdopted', gte: 3, reward: 100, icon: 'heart' },
+  { id: 'pats-50', name: 'Head Scratcher', description: 'Pat your pets 50 times.', stat: 'petPats', gte: 50, reward: 60, icon: 'hand' },
   { id: 'mastery-1', name: 'Topic Master', description: 'Master a topic (80% of its questions correct).', stat: 'topicsMastered', gte: 1, reward: 100, icon: 'crown' },
 ];

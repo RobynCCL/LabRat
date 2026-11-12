@@ -7,7 +7,9 @@ import { getItem, shopItems } from '@/content/shop/items';
 import type { AppliedItem, PlaceableItem } from '@/content/shop/types';
 import { addItem, findSpot, moveItem, placementProblem, removeItem, footprint, type Placed, type Rot } from '@/engine/lab/grid';
 import { sellPrice } from '@/engine/economy/economy';
-import { RoomView, T, PAD, floorTop, metaFor, wallRect } from '@/components/lab/RoomView';
+import { RoomView, T, PAD, floorTop, metaFor, wallRect, isStanding } from '@/components/lab/RoomView';
+import { usePetWander } from '@/components/lab/usePetWander';
+import { PetsPanel } from '@/components/lab/PetsPanel';
 import { ItemPreview } from '@/components/ItemPreview';
 import { Button, Card, EmptyState, Icon, IconButton, Kbd, Modal, Moles, PageHeader, Segmented } from '@/components/ui';
 import { exportSvgToPng } from '@/lib/exportPng';
@@ -45,16 +47,55 @@ export default function LabScreen() {
   const [preview, setPreview] = useState<{ placed: Placed[]; valid: boolean; cand: Placed } | null>(null);
   const [selling, setSelling] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [bubble, setBubble] = useState<{ uid: string; text: string; key: number } | null>(null);
+  const [renaming, setRenaming] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
+  const roomName = room.name || roomDef.name;
+
+  const pets = usePetWander(roomId, size, room, save.inventory, !reduce && !exporting, bubble?.uid);
+
+  // Tap a pet: pat it, show what it says.
+  const patPet = (uid: string) => {
+    const own = inv.get(uid);
+    const item = getItem(own?.itemId ?? '');
+    if (!own || !item?.pet) return;
+    const sayings = item.pet.sayings;
+    const text = `${own.name ?? item.name}\n${sayings[Math.floor(Math.random() * sayings.length)]}`;
+    setBubble({ uid, text, key: Date.now() });
+    store.patPet(uid);
+    play('correct');
+  };
+  useEffect(() => {
+    if (!bubble) return;
+    const t = setTimeout(() => setBubble(null), 3200);
+    return () => clearTimeout(t);
+  }, [bubble]);
+  const petProps = (uid: string): React.SVGProps<SVGGElement> =>
+    decorate
+      ? { style: { pointerEvents: 'none' } }
+      : {
+          role: 'button',
+          tabIndex: 0,
+          'aria-label': `Pat ${inv.get(uid)?.name ?? 'pet'}`,
+          style: { cursor: 'pointer', outline: 'none' },
+          onClick: () => patPet(uid),
+          onKeyDown: (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              patPet(uid);
+            }
+          },
+        };
 
   // Items placed in ANY room are not in storage.
   const placedEverywhere = useMemo(() => new Set(Object.values(save.lab.rooms).flatMap((r) => r.placed.map((p) => p.uid))), [save.lab.rooms]);
   const storage = useMemo(() => {
-    const groups = new Map<string, { itemId: string; variant: string; uids: string[] }>();
+    const groups = new Map<string, { itemId: string; variant: string; uids: string[]; name?: string }>();
     for (const o of save.inventory) {
       if (placedEverywhere.has(o.uid)) continue;
-      const k = `${o.itemId}:${o.variant}`;
-      if (!groups.has(k)) groups.set(k, { itemId: o.itemId, variant: o.variant, uids: [] });
+      if (getItem(o.itemId)?.kind === 'pet') continue; // roaming pets live in the Pets panel
+      const k = o.name ? o.uid : `${o.itemId}:${o.variant}`;
+      if (!groups.has(k)) groups.set(k, { itemId: o.itemId, variant: o.variant, uids: [], name: o.name });
       groups.get(k)!.uids.push(o.uid);
     }
     return [...groups.values()];
@@ -148,6 +189,11 @@ export default function LabScreen() {
       toast('No room to rotate here. Move it first.');
     }
   };
+  const flip = () => {
+    if (!selPlaced || !selItem || !isStanding(selItem)) return;
+    commit(room.placed.map((p) => (p.uid === selPlaced.uid ? { ...p, flip: !p.flip } : p)));
+    play('place');
+  };
   const putAway = (uid = selected) => {
     if (!uid) return;
     commit(removeItem(room.placed, uid, meta).placed);
@@ -195,7 +241,8 @@ export default function LabScreen() {
       else if (k === 'ArrowRight') nudge(1, 0);
       else if (k === 'ArrowUp') nudge(0, -1);
       else if (k === 'ArrowDown') nudge(0, 1);
-      else if (k === 'r' || k === 'R') rotate();
+      else if (k === 'r' || k === 'R') (selItem && isStanding(selItem) ? flip() : rotate());
+      else if (k === 'f' || k === 'F') flip();
       else if (k === 'Delete' || k === 'Backspace') putAway();
       else if (k === 'Escape') setSelected(null);
       else return;
@@ -241,7 +288,21 @@ export default function LabScreen() {
             }
           },
         }
-      : {};
+      : getItem(inv.get(uid)?.itemId ?? '')?.pet
+        ? {
+            role: 'button',
+            tabIndex: 0,
+            'aria-label': `Say hello to ${inv.get(uid)?.name}`,
+            style: { cursor: 'pointer', outline: 'none' },
+            onClick: () => patPet(uid),
+            onKeyDown: (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                patPet(uid);
+              }
+            },
+          }
+        : {};
 
   // Ghost overlay showing where the dragged item would land
   let overlay: React.ReactNode = null;
@@ -274,8 +335,8 @@ export default function LabScreen() {
     await new Promise((r) => setTimeout(r, 60));
     try {
       await exportSvgToPng(svgRef.current, {
-        title: `${save.settings.name ? save.settings.name + '’s' : 'My'} ${roomDef.name}`,
-        subtitle: `Level ${level} · ${room.placed.length} items · Lab Rat`,
+        title: room.name ? room.name : `${save.settings.name ? save.settings.name + '’s' : 'My'} ${roomDef.name}`,
+        subtitle: `Level ${level} · ${room.placed.length} items${pets.length ? ` · ${pets.map((p) => p.name).join(', ')}` : ''}`,
         filename: `lab-rat-${roomDef.id}.png`,
         dark: document.documentElement.dataset.theme === 'dark',
       });
@@ -290,11 +351,16 @@ export default function LabScreen() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="My Lab"
+        title={roomName}
         icon="flask"
         subtitle={decorate ? 'Decorate mode: drag items to move them, or use the keyboard.' : 'Your personal laboratory. Earn Moles to fill it with kit.'}
         actions={
           <>
+            {!decorate && (
+              <Button variant="ghost" icon="pencil" onClick={() => setRenaming(true)} aria-label="Rename this room">
+                Rename
+              </Button>
+            )}
             {!decorate && (
               <Button variant="secondary" icon="image" onClick={exportPng} disabled={exporting}>
                 {exporting ? 'Saving…' : 'Show off (PNG)'}
@@ -338,8 +404,11 @@ export default function LabScreen() {
                 selected={decorate ? selected : null}
                 itemProps={itemProps}
                 overlay={overlay}
+                pets={pets}
+                petProps={petProps}
+                bubble={bubble}
                 className={`mx-auto block h-auto w-full select-none ${decorate ? "touch-none" : ""}`}
-                title={`${roomDef.name}, ${room.placed.length} items`}
+                title={`${roomName}, ${room.placed.length} items, ${pets.length} pets`}
               />
             </div>
           </Card>
@@ -351,7 +420,7 @@ export default function LabScreen() {
                 <div className="mr-auto min-w-0">
                   <div className="truncate font-semibold">{selItem.name}</div>
                   <div className="hidden text-xs text-muted sm:block">
-                    <Kbd>←↑↓→</Kbd> move · {selItem.rotatable && <><Kbd>R</Kbd> rotate · </>}
+                    <Kbd>←↑↓→</Kbd> move · {isStanding(selItem) ? <><Kbd>F</Kbd> flip · </> : selItem.rotatable && <><Kbd>R</Kbd> rotate · </>}
                     <Kbd>Del</Kbd> store · <Kbd>Ctrl Z</Kbd> undo
                   </div>
                 </div>
@@ -361,21 +430,30 @@ export default function LabScreen() {
                   <IconButton icon="arrow-down" label="Move down" onClick={() => nudge(0, 1)} />
                   <IconButton icon="chevron-right" label="Move right" onClick={() => nudge(1, 0)} />
                 </div>
-                {selItem.rotatable && (
-                  <Button size="sm" variant="secondary" icon="rotate" onClick={rotate}>
-                    Rotate
+                {isStanding(selItem) ? (
+                  <Button size="sm" variant="secondary" icon="flip" onClick={flip}>
+                    Flip
                   </Button>
+                ) : (
+                  selItem.rotatable && (
+                    <Button size="sm" variant="secondary" icon="rotate" onClick={rotate}>
+                      Rotate
+                    </Button>
+                  )
                 )}
                 <Button size="sm" variant="secondary" icon="box" onClick={() => putAway()}>
                   Store
                 </Button>
-                <Button size="sm" variant="secondary" icon="coin" onClick={() => setSelling(selected)}>
-                  Sell
-                </Button>
+                {!selItem.pet && (
+                  <Button size="sm" variant="secondary" icon="coin" onClick={() => setSelling(selected)}>
+                    Sell
+                  </Button>
+                )}
                 <IconButton icon="x" label="Deselect" onClick={() => setSelected(null)} />
               </motion.div>
             )}
           </AnimatePresence>
+          {!decorate && <PetsPanel roomId={roomId} onSayHello={patPet} />}
           {!decorate && room.placed.length < 3 && (
             <p className="mt-3 text-sm text-muted">
               Tip: visit the <Link to="/shop" className="font-semibold text-primary underline">Shop</Link> to buy furniture, then press <b>Decorate</b> to arrange it.
@@ -403,7 +481,7 @@ export default function LabScreen() {
                             <ItemPreview item={item} variant={g.variant} size={44} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-semibold">{item.name}</div>
+                            <div className="truncate text-sm font-semibold">{g.name ?? item.name}</div>
                             <div className="truncate text-xs text-muted">
                               {v?.name} {g.uids.length > 1 && <>· ×{g.uids.length}</>}
                             </div>
@@ -423,6 +501,8 @@ export default function LabScreen() {
           </aside>
         )}
       </div>
+
+      <RenameRoom open={renaming} onClose={() => setRenaming(false)} roomId={roomId} current={room.name ?? ''} fallback={roomDef.name} />
 
       <Modal
         open={!!selling}
@@ -472,7 +552,7 @@ function RoomTabs({ level }: { level: number }) {
             className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-semibold transition ${active ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-surface hover:border-primary/40'}`}
           >
             <Icon name={unlocked ? 'door' : 'lock'} size={16} />
-            {r.name}
+            {save.lab.rooms[r.id]?.name || r.name}
             <span className="text-xs font-normal text-muted">
               {r.cols}×{r.rows}
             </span>
@@ -567,5 +647,39 @@ function StylePanel() {
         More styles in the <Link to="/shop" className="font-semibold text-primary underline">Shop</Link> under Structure.
       </p>
     </Card>
+  );
+}
+
+function RenameRoom({ open, onClose, roomId, current, fallback }: { open: boolean; onClose: () => void; roomId: string; current: string; fallback: string }) {
+  const [name, setName] = useState(current);
+  useEffect(() => {
+    if (open) setName(current);
+  }, [open, current]);
+  const save = () => {
+    useGame.getState().renameRoom(roomId, name);
+    onClose();
+  };
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Name this room"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button icon="check" onClick={save}>
+            Save
+          </Button>
+        </>
+      }
+    >
+      <label className="block">
+        <span className="label">Room name</span>
+        <input className="input" maxLength={28} value={name} placeholder={fallback} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && save()} />
+      </label>
+      <p className="mt-2 text-sm text-muted">Leave it blank to use “{fallback}”. Ideas: The Mole Hole, Fizz HQ, Avogadro’s Den.</p>
+    </Modal>
   );
 }
