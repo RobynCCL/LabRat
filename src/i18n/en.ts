@@ -460,6 +460,18 @@ export const en = {
     saved: 'Question saved',
     defaultName: 'My questions',
   },
+  lock: {
+    title: 'Adding question banks is locked',
+    body: 'Enter the code to add, import, edit or delete question banks. You can still browse banks, try questions and switch banks on or off.',
+    unlock: 'Unlock',
+    lock: 'Lock',
+    enterCode: 'Enter the code',
+    code: 'Code',
+    wrong: 'That code isn’t right. Try again.',
+    unlocked: 'Question bank editing unlocked',
+    locked: 'Question bank editing locked',
+    lockedTab: 'Locked – enter the code first',
+  },
   editor: {
     editTitle: 'Edit question',
     newTitle: 'New question',

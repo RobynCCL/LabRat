@@ -15,6 +15,7 @@ import { RequestPanel } from './banks/RequestPanel';
 import { useI18n } from '@/i18n/useI18n';
 import { bankLanguage } from '@/lib/questionPool';
 import { questionLangs } from '@/i18n';
+import { CodeModal, LockBanner } from './banks/CodeLock';
 
 type Tab = 'banks' | 'import' | 'request';
 
@@ -22,6 +23,11 @@ export default function BankManagerScreen() {
   const [tab, setTab] = useState<Tab>('banks');
   const [openBank, setOpenBank] = useState<string | null>(null);
   const { t: tr } = useI18n();
+  const unlocked = useGame((g) => g.banksUnlocked);
+  const [askCode, setAskCode] = useState<Tab | null>(null);
+  // Import and Request add banks, so they need the code.
+  const goTab = (id: Tab) => (id !== 'banks' && !unlocked ? setAskCode(id) : setTab(id));
+  const shownTab = unlocked ? tab : 'banks';
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'banks', label: tr.banks.tabs.banks, icon: 'book' },
     { id: 'import', label: tr.banks.tabs.import, icon: 'upload' },
@@ -35,17 +41,20 @@ export default function BankManagerScreen() {
           <button
             key={t.id}
             role="tab"
-            aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
-            className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 font-semibold transition ${tab === t.id ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-ink'}`}
+            aria-selected={shownTab === t.id}
+            onClick={() => goTab(t.id)}
+            title={t.id !== 'banks' && !unlocked ? tr.lock.lockedTab : undefined}
+            className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 font-semibold transition ${shownTab === t.id ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-ink'}`}
           >
             <Icon name={t.icon} size={18} />
             {t.label}
+            {t.id !== 'banks' && !unlocked && <Icon name="lock" size={14} className="text-muted" />}
           </button>
         ))}
       </div>
-      {tab === 'banks' && <BanksTab openBank={openBank} setOpenBank={setOpenBank} />}
-      {tab === 'import' && (
+      <LockBanner onUnlock={() => setAskCode('banks')} />
+      {shownTab === 'banks' && <BanksTab openBank={openBank} setOpenBank={setOpenBank} />}
+      {shownTab === 'import' && (
         <ImportPanel
           onDone={(id) => {
             setOpenBank(id);
@@ -53,7 +62,8 @@ export default function BankManagerScreen() {
           }}
         />
       )}
-      {tab === 'request' && <RequestPanel onGoImport={() => setTab('import')} />}
+      {shownTab === 'request' && <RequestPanel onGoImport={() => setTab('import')} />}
+      <CodeModal open={askCode !== null} onClose={() => setAskCode(null)} onUnlocked={() => askCode && setTab(askCode)} />
     </div>
   );
 }
@@ -71,6 +81,7 @@ function BanksTab({ openBank, setOpenBank }: { openBank: string | null; setOpenB
   const [newOpen, setNewOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const { t: tr, c, lang } = useI18n();
+  const unlocked = useGame((g) => g.banksUnlocked);
   const [newLang, setNewLang] = useState<'en' | 'ga'>(lang);
 
   const createBank = () => {
@@ -115,9 +126,11 @@ function BanksTab({ openBank, setOpenBank }: { openBank: string | null; setOpenB
 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{tr.banks.yourBanks}</h2>
-        <Button size="sm" icon="plus" onClick={() => setNewOpen(true)}>
-          {tr.banks.newBank}
-        </Button>
+        {unlocked && (
+          <Button size="sm" icon="plus" onClick={() => setNewOpen(true)}>
+            {tr.banks.newBank}
+          </Button>
+        )}
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {banks.map(({ bank, builtIn, enabled }) => {
@@ -151,8 +164,8 @@ function BanksTab({ openBank, setOpenBank }: { openBank: string | null; setOpenB
                 ))}
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                <Button size="sm" variant={openBank === bank.bankId ? 'primary' : 'secondary'} icon={builtIn ? 'book' : 'edit'} onClick={() => setOpenBank(openBank === bank.bankId ? null : bank.bankId)}>
-                  {builtIn ? tr.banks.view : tr.banks.edit}
+                <Button size="sm" variant={openBank === bank.bankId ? 'primary' : 'secondary'} icon={builtIn || !unlocked ? 'book' : 'edit'} onClick={() => setOpenBank(openBank === bank.bankId ? null : bank.bankId)}>
+                  {builtIn || !unlocked ? tr.banks.view : tr.banks.edit}
                 </Button>
                 <Button size="sm" variant="ghost" icon="download" onClick={() => exportJson(bank)}>
                   JSON
@@ -160,7 +173,7 @@ function BanksTab({ openBank, setOpenBank }: { openBank: string | null; setOpenB
                 <Button size="sm" variant="ghost" icon="download" onClick={() => exportCsv(bank)}>
                   CSV
                 </Button>
-                {builtIn ? (
+                {!unlocked ? null : builtIn ? (
                   <Button size="sm" variant="ghost" icon="copy" onClick={() => duplicate(bank)}>
                     {tr.banks.copyToEdit}
                   </Button>
@@ -175,7 +188,7 @@ function BanksTab({ openBank, setOpenBank }: { openBank: string | null; setOpenB
         })}
       </div>
 
-      {selected && <BankQuestions bank={selected.bank} editable={!selected.builtIn} onClose={() => setOpenBank(null)} />}
+      {selected && <BankQuestions bank={selected.bank} editable={!selected.builtIn && unlocked} onClose={() => setOpenBank(null)} />}
 
       <Modal
         open={newOpen}
@@ -242,6 +255,7 @@ function BankQuestions({ bank, editable, onClose }: { bank: QuestionBank; editab
   const [editing, setEditing] = useState<Question | null | 'new'>(null);
   const [trying, setTrying] = useState<Question | null>(null);
   const [toDelete, setToDelete] = useState<Question | null>(null);
+  const unlockedNow = useGame((g) => g.banksUnlocked);
   const { t: tr, c } = useI18n();
 
   const list = useMemo(
@@ -275,7 +289,7 @@ function BankQuestions({ bank, editable, onClose }: { bank: QuestionBank; editab
         )}
         <IconButton icon="x" label={tr.banks.closeBank} onClick={onClose} />
       </div>
-      {!editable && <p className="mb-3 rounded-xl bg-surface-2 p-3 text-sm text-muted">{tr.banks.readOnly}</p>}
+      {!editable && unlockedNow && <p className="mb-3 rounded-xl bg-surface-2 p-3 text-sm text-muted">{tr.banks.readOnly}</p>}
       {list.length === 0 ? (
         <EmptyState icon="book" title={bank.questions.length ? tr.banks.noMatch : tr.banks.empty}>
           {editable && !bank.questions.length && tr.banks.emptyHelp}

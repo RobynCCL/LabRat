@@ -13,6 +13,7 @@ import { emit } from '@/lib/events';
 import { newId } from '@/lib/id';
 import { buildPool, topicIndex } from '@/lib/questionPool';
 import { cleanName } from '@/lib/pets';
+import { BANK_EDIT_CODE } from '@/content/access';
 import { dictFor, questionLangs } from '@/i18n';
 import { createNewSave, emptyRoom } from './defaults';
 import { migrate } from './migrations';
@@ -28,6 +29,10 @@ export interface LabSnapshot {
 
 interface GameStore {
   ready: boolean;
+  /** Question-bank editing unlocked with the code (kept in memory only, never saved). */
+  banksUnlocked: boolean;
+  unlockBanks(code: string): boolean;
+  lockBanks(): void;
   save: SaveData;
   pool: PoolQuestion[];
   index: TopicIndex;
@@ -151,6 +156,15 @@ export const useGame = create<GameStore>((set, get) => {
 
   return {
     ready: false,
+    banksUnlocked: false,
+    unlockBanks(code) {
+      const ok = code.trim() === BANK_EDIT_CODE;
+      if (ok) set({ banksUnlocked: true });
+      return ok;
+    },
+    lockBanks() {
+      set({ banksUnlocked: false });
+    },
     save: initial,
     pool: pool0,
     index: topicIndex(pool0),

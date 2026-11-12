@@ -146,3 +146,22 @@ describe('pets', () => {
     expect(S().save.lab.rooms.starter.name).toBeUndefined();
   });
 });
+
+describe('question bank lock', () => {
+  it('starts locked and only the right code unlocks it', () => {
+    useGame.setState({ banksUnlocked: false });
+    expect(S().banksUnlocked).toBe(false);
+    expect(S().unlockBanks('1234')).toBe(false);
+    expect(S().banksUnlocked).toBe(false);
+    expect(S().unlockBanks(' 5052 ')).toBe(true);
+    expect(S().banksUnlocked).toBe(true);
+    S().lockBanks();
+    expect(S().banksUnlocked).toBe(false);
+  });
+
+  it('is never written into the save file', () => {
+    S().unlockBanks('5052');
+    expect(S().exportSave()).not.toContain('banksUnlocked');
+    S().lockBanks();
+  });
+});

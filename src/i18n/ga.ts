@@ -478,6 +478,18 @@ export const ga: Dict = {
     saved: 'Ceist sábháilte',
     defaultName: 'Mo cheisteanna',
   },
+  lock: {
+    title: 'Tá cur leis na bainc cheisteanna faoi ghlas',
+    body: 'Cuir isteach an cód chun bainc cheisteanna a chur leis, a iompórtáil, a chur in eagar nó a scriosadh. Is féidir leat fós féachaint ar na bainc, triail a bhaint as ceisteanna agus bainc a chur ar siúl nó a mhúchadh.',
+    unlock: 'Díghlasáil',
+    lock: 'Cuir faoi ghlas',
+    enterCode: 'Cuir isteach an cód',
+    code: 'Cód',
+    wrong: 'Níl an cód sin ceart. Bain triail eile as.',
+    unlocked: 'Díghlasáladh eagarthóireacht na mbanc ceisteanna',
+    locked: 'Cuireadh eagarthóireacht na mbanc ceisteanna faoi ghlas',
+    lockedTab: 'Faoi ghlas – cuir isteach an cód ar dtús',
+  },
   editor: {
     editTitle: 'Cuir an cheist in eagar',
     newTitle: 'Ceist nua',

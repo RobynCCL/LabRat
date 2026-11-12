@@ -87,6 +87,10 @@ See `src/content/banks/_template.json` for one example of each type.
 `id,topic,subtopic,type,difficulty,question,options,answer,explanation,tags,tolerance,unit,caseSensitive`.
 Lists use `|`. For `mcq` the answer is a letter (`B`), 1-based number or option text. For `multi` use `A|C`. For `match` write `left=right|left=right`. For `order` write the items in order in `answer`.
 
+### The bank code
+
+Adding, importing, editing and deleting banks in the app is locked behind a code, set in `src/content/access.ts` (currently `5052`). Unlocking lasts until the app is closed or someone taps **Lock**, and it is never saved. This is a casual lock: there is no server, so the code can be found by anyone who reads the source.
+
 ### Ways to add a bank
 
 - **In the app (for you):** Question banks → Import (paste JSON or upload JSON/CSV). Imported banks live in the save.
