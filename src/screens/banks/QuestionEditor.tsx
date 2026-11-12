@@ -21,6 +21,7 @@ interface Draft {
   value: string;
   tolerance: string;
   unit: string;
+  prefix: string;
   accepted: string;
   caseSensitive: boolean;
   items: string;
@@ -42,6 +43,7 @@ function toDraft(q?: Question, defaults?: Partial<Draft>): Draft {
     value: '',
     tolerance: '',
     unit: '',
+    prefix: '',
     accepted: '',
     caseSensitive: false,
     items: '',
@@ -56,7 +58,7 @@ function toDraft(q?: Question, defaults?: Partial<Draft>): Draft {
   Object.assign(d, { id: q.id, topic: q.topic, subtopic: q.subtopic ?? '', type: q.type, difficulty: q.difficulty, question: q.question, explanation: q.explanation, tags: (q.tags ?? []).join(', ') });
   if (q.type === 'mcq') Object.assign(d, { options: q.options, correct: [q.answer] });
   if (q.type === 'multi') Object.assign(d, { options: q.options, correct: q.answer });
-  if (q.type === 'numeric') Object.assign(d, { value: String(q.answer.value), tolerance: q.answer.tolerance != null ? String(q.answer.tolerance) : '', unit: q.answer.unit ?? '' });
+  if (q.type === 'numeric') Object.assign(d, { value: String(q.answer.value), tolerance: q.answer.tolerance != null ? String(q.answer.tolerance) : '', unit: q.answer.unit ?? '', prefix: q.answer.prefix ?? '' });
   if (q.type === 'text') Object.assign(d, { accepted: q.answer.join('\n'), caseSensitive: !!q.caseSensitive });
   if (q.type === 'order') d.items = q.answer.join('\n');
   if (q.type === 'match') d.pairs = q.answer.map((p) => [...p] as [string, string]);
@@ -92,6 +94,7 @@ function fromDraft(d: Draft): Record<string, unknown> {
           value: d.value.trim() === '' ? NaN : Number(d.value.replace(',', '.')),
           ...(d.tolerance.trim() ? { tolerance: Number(d.tolerance) } : {}),
           ...(d.unit.trim() ? { unit: d.unit.trim() } : {}),
+          ...(d.prefix.trim() ? { prefix: d.prefix.trim() } : {}),
         },
       };
     case 'text':
@@ -261,7 +264,10 @@ export function QuestionEditor({
             </div>
           )}
           {d.type === 'numeric' && (
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
+              <Field label={t.editor.prefix}>
+                <input className="input" value={d.prefix} onChange={(e) => set('prefix', e.target.value)} placeholder={t.editor.prefixPlaceholder} />
+              </Field>
               <Field label={t.editor.value} error={err('answer')}>
                 <input className="input" inputMode="decimal" value={d.value} onChange={(e) => set('value', e.target.value)} placeholder="0.1" />
               </Field>

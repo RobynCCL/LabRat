@@ -17,7 +17,7 @@ import { validateBank, validationMessage, type TopicRef, type ValidationResult }
  */
 export const CSV_COLUMNS = [
   'id', 'topic', 'subtopic', 'type', 'difficulty', 'question', 'options', 'answer',
-  'explanation', 'tags', 'tolerance', 'unit', 'caseSensitive',
+  'explanation', 'tags', 'tolerance', 'unit', 'caseSensitive', 'prefix',
 ] as const;
 
 const split = (s: string | undefined) =>
@@ -64,6 +64,7 @@ export function csvRowToQuestion(row: Record<string, string>): Record<string, un
         value: Number.isFinite(value) ? value : ans,
         ...(get('tolerance') ? { tolerance: Number(get('tolerance')) } : {}),
         ...(get('unit') ? { unit: get('unit') } : {}),
+        ...(get('prefix') ? { prefix: get('prefix') } : {}),
       };
       break;
     }
@@ -133,6 +134,7 @@ export function questionsToCsv(questions: Question[]): string {
       tolerance: '',
       unit: '',
       caseSensitive: '',
+      prefix: '',
     };
     switch (q.type) {
       case 'mcq':
@@ -147,6 +149,7 @@ export function questionsToCsv(questions: Question[]): string {
         base.answer = String(q.answer.value);
         base.tolerance = q.answer.tolerance != null ? String(q.answer.tolerance) : '';
         base.unit = q.answer.unit ?? '';
+        base.prefix = q.answer.prefix ?? '';
         break;
       case 'text':
         base.answer = q.answer.join('|');

@@ -43,6 +43,8 @@ export interface NumericAnswer {
   tolerance?: number;
   /** Displayed next to the input box, e.g. "mol", "cm3", "g mol^-1". */
   unit?: string;
+  /** Shown in front of the input box, e.g. "ΔH =". */
+  prefix?: string;
 }
 
 export interface NumericQuestion extends QuestionBase {

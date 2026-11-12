@@ -144,3 +144,24 @@ describe('CSV import', () => {
     expect(r2.bank!.questions).toEqual(r1.bank!.questions);
   });
 });
+
+describe('built-in banks', () => {
+  const files = import.meta.glob<{ default: unknown }>('../../content/banks/*.json', { eager: true });
+  for (const [path, mod] of Object.entries(files)) {
+    it(`${path.split('/').pop()} has no errors`, () => {
+      const r = validateBank(mod.default, topics);
+      expect(r.errors).toEqual([]);
+      expect(r.invalidCount).toBe(0);
+    });
+  }
+});
+
+describe('numeric prefix', () => {
+  it('keeps "ΔH =" and survives CSV export/import', () => {
+    const q = { id: 'h1', topic: 'fuels', type: 'numeric', difficulty: 2, question: 'Q?', explanation: 'E.', answer: { value: -76, tolerance: 1, unit: 'kJ mol-1', prefix: 'ΔH =' } };
+    const r = validateQuestion(q, topics);
+    expect(r.question).toMatchObject({ answer: { prefix: 'ΔH =' } });
+    const back = parseCsvBank(questionsToCsv([r.question!]), { name: 'x' }, topics);
+    expect(back.bank!.questions[0]).toEqual(r.question);
+  });
+});

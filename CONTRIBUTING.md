@@ -74,7 +74,7 @@ The `answer` field depends on the type:
 | --- | --- |
 | `mcq` | `options: string[]`, `answer: number` (0-based index) |
 | `multi` | `options: string[]`, `answer: number[]` (all correct indices) |
-| `numeric` | `answer: { value: number, tolerance?: number, unit?: string }`. Tolerance is absolute; default is 1% |
+| `numeric` | `answer: { value: number, tolerance?: number, unit?: string, prefix?: string }`. Tolerance is absolute; default is 1%. `prefix` is shown before the box, e.g. `"ΔH ="` |
 | `text` | `answer: string[]` (every accepted answer); optional `caseSensitive: true`. Comparison ignores spaces, case and sub/superscripts |
 | `order` | `answer: string[]` in the **correct** order (the game shuffles them) |
 | `match` | `answer: [left, right][]` correct pairs (the game shuffles the right side) |

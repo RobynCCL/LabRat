@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkAnswer, parseNumber } from './checkAnswer';
+import { checkAnswer, describeAnswer, parseNumber } from './checkAnswer';
 import type { Question } from './types';
 
 const base = { id: 'q', topic: 'stoichiometry', difficulty: 1 as const, question: '?', explanation: '' };
@@ -93,5 +93,17 @@ describe('checkAnswer', () => {
   it('type mismatch is wrong', () => {
     const q: Question = { ...base, type: 'mcq', options: ['a', 'b'], answer: 0 };
     expect(checkAnswer(q, { type: 'text', value: 'a' }).correct).toBe(false);
+  });
+});
+
+describe('ΔH answers', () => {
+  const q: Question = { id: 'h', topic: 'fuels', difficulty: 2, question: '?', explanation: '', type: 'numeric', answer: { value: 226, tolerance: 1, unit: 'kJ mol-1', prefix: 'ΔH =' } };
+  it('the sign matters and "+" is accepted', () => {
+    expect(checkAnswer(q, { type: 'numeric', value: '+226' }).correct).toBe(true);
+    expect(checkAnswer(q, { type: 'numeric', value: '226' }).correct).toBe(true);
+    expect(checkAnswer(q, { type: 'numeric', value: '-226' }).correct).toBe(false);
+  });
+  it('describes the answer with its sign', () => {
+    expect(describeAnswer(q)).toBe('ΔH = +226 kJ mol-1');
   });
 });

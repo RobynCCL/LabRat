@@ -35,7 +35,13 @@ export default function TopicQuizScreen() {
   const { t, c } = useI18n();
 
   const [phase, setPhase] = useState<Phase>('setup');
-  const [topic, setTopic] = useState('mixed');
+  const [topic, setTopicState] = useState('mixed');
+  /** Optional section (subtopic) within the chosen topic; '' = whole topic. */
+  const [section, setSection] = useState('');
+  const setTopic = (tp: string) => {
+    setTopicState(tp);
+    setSection('');
+  };
   const [diff, setDiff] = useState<Diff>('any');
   const length = save.settings.quizLength;
   const [questions, setQuestions] = useState<PoolQuestion[]>([]);
@@ -47,8 +53,11 @@ export default function TopicQuizScreen() {
   const [final, setFinal] = useState<ReturnType<typeof quizCompletionReward> | null>(null);
 
   const available = useMemo(
-    () => pool.filter((q) => (topic === 'mixed' || q.topic === topic) && (diff === 'any' || q.difficulty === Number(diff))),
-    [pool, topic, diff],
+    () =>
+      pool.filter(
+        (q) => (topic === 'mixed' || q.topic === topic) && (!section || q.subtopic === section) && (diff === 'any' || q.difficulty === Number(diff)),
+      ),
+    [pool, topic, section, diff],
   );
 
   const start = () => {
@@ -87,7 +96,14 @@ export default function TopicQuizScreen() {
     }
   };
 
-  const topicName = topic === 'mixed' ? t.quiz.mixedTopics : c.topicName(topicById(topic));
+  // Sections that have questions in the chosen topic (so a bank like "Hess's law" becomes its own practice section).
+  const sections = useMemo(() => {
+    if (topic === 'mixed') return [];
+    const counts = new Map<string, number>();
+    for (const q of pool) if (q.topic === topic && q.subtopic) counts.set(q.subtopic, (counts.get(q.subtopic) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [pool, topic]);
+  const topicName = topic === 'mixed' ? t.quiz.mixedTopics : `${c.topicName(topicById(topic))}${section ? ` · ${c.subtopic(section)}` : ''}`;
 
   return (
     <ModeShell
@@ -132,6 +148,24 @@ export default function TopicQuizScreen() {
                 <section>
                   <h2 className="mb-2 text-lg font-semibold">{t.quiz.chooseTopic}</h2>
                   <TopicPicker value={topic} onChange={setTopic} />
+                  {sections.length > 0 && (
+                    <div className="mt-3">
+                      <div className="label">{t.quiz.section}</div>
+                      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={t.quiz.section}>
+                        {[['', t.quiz.wholeTopic, sections.reduce((n, [, k]) => n + k, 0)] as const, ...sections.map(([s, k]) => [s, c.subtopic(s), k] as const)].map(([value, label, k]) => (
+                          <button
+                            key={value || '_all'}
+                            role="radio"
+                            aria-checked={section === value}
+                            onClick={() => setSection(value)}
+                            className={`rounded-full border-2 px-3 py-1 text-sm font-semibold transition ${section === value ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-surface text-muted hover:text-ink'}`}
+                          >
+                            {label} <span className="font-normal opacity-70 num">{k}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </section>
                 <section className="flex flex-wrap items-end gap-6">
                   <div>

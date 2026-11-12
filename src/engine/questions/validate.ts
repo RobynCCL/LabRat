@@ -129,8 +129,9 @@ export function validateQuestion(
       else if (a.tolerance != null && (typeof a.tolerance !== 'number' || a.tolerance < 0))
         err('answer.tolerance', msg('tolerance'));
       else if (a.unit != null && typeof a.unit !== 'string') err('answer.unit', msg('unitText'));
+      else if (a.prefix != null && typeof a.prefix !== 'string') err('answer.prefix', msg('unitText'));
       else {
-        cleanAnswer = { value: a.value, ...(a.tolerance != null ? { tolerance: a.tolerance } : {}), ...(a.unit ? { unit: a.unit } : {}) };
+        cleanAnswer = { value: a.value, ...(a.tolerance != null ? { tolerance: a.tolerance } : {}), ...(a.unit ? { unit: a.unit } : {}), ...(a.prefix ? { prefix: a.prefix } : {}) };
         if (a.tolerance == null) warnings.push({ row, id: idv, field: 'answer.tolerance', ...msg('noTolerance') });
       }
       break;

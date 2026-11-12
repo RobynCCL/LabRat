@@ -188,6 +188,7 @@ export function QuestionView({ question: q, onAnswered, onNext, nextLabel = 'Nex
 
           {(q.type === 'numeric' || q.type === 'text') && (
             <div className="flex items-center gap-2">
+              {q.type === 'numeric' && q.answer.prefix && <span className="whitespace-nowrap font-display text-xl font-semibold">{formatChem(q.answer.prefix)}</span>}
               <input
                 ref={inputRef}
                 className={`input h-12 text-lg ${answered ? (outcome?.correct ? 'border-good ring-2 ring-good/30' : 'border-bad ring-2 ring-bad/30') : ''}`}

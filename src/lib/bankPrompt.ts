@@ -19,7 +19,7 @@ export interface BankRequest {
 const TYPE_DOCS: Record<QuestionType, string> = {
   mcq: '"mcq" – multiple choice. "options": 4 strings; "answer": 0-based index of the correct option.',
   multi: '"multi" – select all that apply. "options": 4–6 strings; "answer": array of 0-based indices of ALL correct options.',
-  numeric: '"numeric" – calculation. "answer": {"value": number, "tolerance": number (absolute), "unit": "string, optional"}. No "options".',
+  numeric: '"numeric" – calculation. "answer": {"value": number, "tolerance": number (absolute), "unit": "string, optional", "prefix": "optional text shown before the input box, e.g. ΔH ="}. No "options".',
   text: '"text" – short typed answer. "answer": array of every acceptable answer (synonyms, formula and name). Add "caseSensitive": true only for formulas where case matters. No "options".',
   order: '"order" – put items in order. "answer": the items in the CORRECT order (the game shuffles them). No "options".',
   match: '"match" – match pairs. "answer": array of ["left", "right"] pairs (3–5 pairs, each side unique). No "options".',

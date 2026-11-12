@@ -1,0 +1,156 @@
+{
+  "bankId": "fuels-hess-ga",
+  "name": "Dlí Hess agus teirmiceimic",
+  "version": 1,
+  "language": "ga",
+  "description": "Rannán cleachtaidh ar Dhlí Hess agus ar theasa imoibriúcháin. Roghnaigh Breoslaí agus teas → Dlí Hess i dTráth na gCeist. Ba chóir do mhúinteoir an téarmaíocht a sheiceáil.",
+  "questions": [
+    {
+      "id": "hess-01", "topic": "fuels", "subtopic": "Dlí Hess", "type": "mcq", "difficulty": 1,
+      "question": "Cé acu ráiteas díobh seo a chuireann Dlí Hess in iúl?",
+      "options": [
+        "Braitheann an t-athrú teasa in imoibriú ceimiceach ar staid tosaigh agus ar staid deiridh an chórais amháin, agus ní ar an mbealach a leantar",
+        "Braitheann an t-athrú teasa in imoibriú ar an mbealach a leantar idir na himoibreáin agus na táirgí",
+        "Is ionann teas imoibriúcháin agus suim theasa foirmithe na n-imoibreán",
+        "Bíonn gach imoibriú ceimiceach eisteirmeach má tharlaíonn sé i gcéim amháin"
+      ],
+      "answer": 0,
+      "explanation": "De réir Dhlí Hess, is ionann an t-athrú teasa iomlán cibé acu a tharlaíonn an t-imoibriú i gcéim amháin nó i roinnt céimeanna, ós rud é nach mbraitheann sé ach ar na staideanna tosaigh agus deiridh.",
+      "tags": ["sainmhíniú"]
+    },
+    {
+      "id": "hess-02", "topic": "fuels", "subtopic": "Dlí Hess", "type": "mcq", "difficulty": 1,
+      "question": "In imoibriú eisteirmeach, cén comhartha atá ar ΔH, agus cén fáth?",
+      "options": [
+        "Diúltach, mar go gcailleann an córas teas don timpeallacht",
+        "Deimhneach, mar go n-ardaíonn teocht na timpeallachta",
+        "Diúltach, mar go nglacann an córas teas isteach ón timpeallacht",
+        "Nialas, mar go gcoimeádtar fuinneamh"
+      ],
+      "answer": 0,
+      "explanation": "Scaoileann imoibriú eisteirmeach teas, mar sin bíonn níos lú fuinnimh ag na táirgí ná ag na himoibreáin agus bíonn ΔH diúltach.",
+      "tags": ["eisteirmeach"]
+    },
+    {
+      "id": "hess-03", "topic": "fuels", "subtopic": "Dlí Hess", "type": "mcq", "difficulty": 2,
+      "question": "Cé acu cothromóid a léiríonn teas foirmithe caighdeánach an uisce, H2O(l)?",
+      "options": [
+        "H2(g) + 1/2 O2(g) -> H2O(l)",
+        "2H2(g) + O2(g) -> 2H2O(l)",
+        "H2(g) + O(g) -> H2O(l)",
+        "H2O(l) -> H2(g) + 1/2 O2(g)"
+      ],
+      "answer": 0,
+      "explanation": "Is é teas foirmithe an t-athrú teasa nuair a fhoirmítear mól amháin de chomhdhúil óna dúile ina staideanna caighdeánacha. Déanann an dara cothromóid 2 mhól, níl O(g) ina staid chaighdeánach, agus is é an ceann deireanach an t-imoibriú droim ar ais.",
+      "tags": ["teas foirmithe"]
+    },
+    {
+      "id": "hess-04", "topic": "fuels", "subtopic": "Dlí Hess", "type": "multi", "difficulty": 2,
+      "question": "Cé na ráitis atá fíor? Roghnaigh gach ceann atá ceart.",
+      "options": [
+        "Is nialas é teas foirmithe caighdeánach dúile ina staid chaighdeánach",
+        "Is iad 25 °C (298 K) agus brú 1 atmaisféir na coinníollacha caighdeánacha",
+        "Bíonn gach imoibriú foirmithe eisteirmeach",
+        "Is ionann teas foirmithe CO2(g) agus teas dócháin carbóin, C(s)"
+      ],
+      "answer": [0, 1, 3],
+      "explanation": "Is nialas teas foirmithe dúile ina staid chaighdeánach de réir sainmhínithe. Is é C(s) + O2(g) -> CO2(g) an t-imoibriú foirmithe agus an t-imoibriú dócháin araon. Ní bhíonn gach imoibriú foirmithe eisteirmeach: mar shampla, tá teas foirmithe eitín deimhneach.",
+      "tags": ["coinníollacha caighdeánacha"]
+    },
+    {
+      "id": "hess-05", "topic": "fuels", "subtopic": "Dlí Hess", "type": "multi", "difficulty": 1,
+      "question": "Cé na próisis seo atá inteirmeach? Roghnaigh gach ceann atá ceart.",
+      "options": [
+        "Dianscaoileadh teirmeach cailciam carbónáite, CaCO3",
+        "Dóchán meatáin, CH4",
+        "Oighear ag leá",
+        "Neodrú HCl le NaOH",
+        "Fótaisintéis"
+      ],
+      "answer": [0, 2, 4],
+      "explanation": "Glacann próisis inteirmeacha teas isteach (ΔH deimhneach): teastaíonn teas chun CaCO3 a dhianscaoileadh, chun oighear a leá agus chun fótaisintéis a dhéanamh. Scaoileann dóchán agus neodrú teas.",
+      "tags": ["inteirmeach"]
+    },
+    {
+      "id": "hess-06", "topic": "fuels", "subtopic": "Dlí Hess", "type": "numeric", "difficulty": 2,
+      "question": "Úsáid na teasa dócháin seo chun teas foirmithe meatáin a ríomh: C(s) + 2H2(g) -> CH4(g). Teas dócháin: C(s) = -394 kJ mol-1; H2(g) = -286 kJ mol-1; CH4(g) = -890 kJ mol-1. (Cuir an comhartha san áireamh.)",
+      "answer": { "value": -76, "tolerance": 1, "unit": "kJ mol-1", "prefix": "ΔH =" },
+      "explanation": "ΔH = (teas dócháin C) + 2(teas dócháin H2) − (teas dócháin CH4) = −394 + 2(−286) − (−890) = −394 − 572 + 890 = −76 kJ mol⁻¹.",
+      "tags": ["ríomh", "teas foirmithe"]
+    },
+    {
+      "id": "hess-07", "topic": "fuels", "subtopic": "Dlí Hess", "type": "numeric", "difficulty": 3,
+      "question": "Ríomh teas foirmithe eitín: 2C(s) + H2(g) -> C2H2(g). Teas dócháin: C(s) = -394 kJ mol-1; H2(g) = -286 kJ mol-1; C2H2(g) = -1300 kJ mol-1. (Cuir an comhartha san áireamh.)",
+      "answer": { "value": 226, "tolerance": 1, "unit": "kJ mol-1", "prefix": "ΔH =" },
+      "explanation": "ΔH = 2(−394) + (−286) − (−1300) = −788 − 286 + 1300 = +226 kJ mol⁻¹. Tá an luach deimhneach, mar sin is imoibriú inteirmeach é foirmiú eitín.",
+      "tags": ["ríomh", "teas foirmithe"]
+    },
+    {
+      "id": "hess-08", "topic": "fuels", "subtopic": "Dlí Hess", "type": "numeric", "difficulty": 3,
+      "question": "Ríomh teas dócháin própáin: C3H8(g) + 5O2(g) -> 3CO2(g) + 4H2O(l). Teasa foirmithe: C3H8(g) = -104 kJ mol-1; CO2(g) = -394 kJ mol-1; H2O(l) = -286 kJ mol-1. (Cuir an comhartha san áireamh.)",
+      "answer": { "value": -2222, "tolerance": 2, "unit": "kJ mol-1", "prefix": "ΔH =" },
+      "explanation": "ΔH = Σ(teasa foirmithe na dtáirgí) − Σ(teasa foirmithe na n-imoibreán) = [3(−394) + 4(−286)] − [(−104) + 5(0)] = −1182 − 1144 + 104 = −2222 kJ mol⁻¹. Is nialas teas foirmithe O2(g).",
+      "tags": ["ríomh", "teas dócháin"]
+    },
+    {
+      "id": "hess-09", "topic": "fuels", "subtopic": "Dlí Hess", "type": "numeric", "difficulty": 2,
+      "question": "2H2(g) + O2(g) -> 2H2O(l) ΔH = -572 kJ. Cad é ΔH don imoibriú H2O(l) -> H2(g) + 1/2 O2(g)? (Cuir an comhartha san áireamh.)",
+      "answer": { "value": 286, "tolerance": 0.5, "unit": "kJ mol-1", "prefix": "ΔH =" },
+      "explanation": "Cas an chothromóid (athraigh an comhartha go +572 kJ) agus roinn ar 2 (mól amháin uisce): ΔH = +286 kJ mol⁻¹.",
+      "tags": ["ríomh"]
+    },
+    {
+      "id": "hess-10", "topic": "fuels", "subtopic": "Dlí Hess", "type": "numeric", "difficulty": 3,
+      "question": "Sa turgnamh éigeantach ar theas imoibriúcháin, measctar 50 cm3 de HCl 1.0 mol L-1 le 50 cm3 de NaOH 1.0 mol L-1. Ardaíonn an teocht 6.8 °C. Ríomh teas an neodrúcháin. (Glac leis go bhfuil dlús an tuaslagáin 1.0 g cm-3 agus a thoilleadh teasa sainiúil 4.18 J g-1 K-1. Cuir an comhartha san áireamh.)",
+      "answer": { "value": -56.8, "tolerance": 0.3, "unit": "kJ mol-1", "prefix": "ΔH =" },
+      "explanation": "Teas a scaoileadh = m × c × ΔT = 100 g × 4.18 × 6.8 = 2842 J. Móil uisce a foirmíodh = 0.050 mol. ΔH = −2842 ÷ 0.050 = −56 848 J mol⁻¹ ≈ −56.8 kJ mol⁻¹ (diúltach mar go bhfuil an t-imoibriú eisteirmeach).",
+      "tags": ["turgnamh éigeantach", "calraiméadracht"]
+    },
+    {
+      "id": "hess-11", "topic": "fuels", "subtopic": "Dlí Hess", "type": "text", "difficulty": 1,
+      "question": "Cén t-ainm atá ar an dlí a deir go bhfuil an t-athrú teasa in imoibriú neamhspleách ar an mbealach a leantar?",
+      "answer": ["Dlí Hess", "Hess", "Dlí Hess maidir le suimiú teasa tairiseach"],
+      "explanation": "Is é Dlí Hess (dlí an tsuimithe teasa tairisigh) é. Ligeann sé dúinn teasa imoibriúcháin nach féidir a thomhas go díreach a ríomh.",
+      "tags": ["sainmhíniú"]
+    },
+    {
+      "id": "hess-12", "topic": "fuels", "subtopic": "Dlí Hess", "type": "text", "difficulty": 2,
+      "question": "Ainmnigh an gaireas a úsáidtear chun teasa dócháin breoslaí a thomhas go cruinn.",
+      "answer": ["calraiméadar buama", "buama-chalraiméadar", "buamachalraiméadar", "buamchalraiméadar", "calraiméadar", "bomb calorimeter"],
+      "explanation": "Dóitear an breosla in ocsaigin faoi bhrú i gcalraiméadar buama; tomhaistear an t-ardú teochta san uisce timpeall air chun an teas a scaoileadh a ríomh.",
+      "tags": ["teas dócháin", "gaireas"]
+    },
+    {
+      "id": "hess-13", "topic": "fuels", "subtopic": "Dlí Hess", "type": "order", "difficulty": 2,
+      "question": "Cuir na céimeanna seo in ord chun ceist ar Dhlí Hess a réiteach.",
+      "answer": [
+        "Scríobh síos an chothromóid sprice",
+        "Cas aon chothromóid a theastaíonn, agus athraigh comhartha a ΔH",
+        "Iolraigh cothromóidí (agus a luachanna ΔH) ionas go meaitseálann na móil an chothromóid sprice",
+        "Suimigh na cothromóidí agus cealaigh na substaintí atá ar an dá thaobh",
+        "Suimigh na luachanna ΔH chun ΔH na cothromóide sprice a fháil"
+      ],
+      "explanation": "Tosaigh leis an sprioc, socraigh na cothromóidí a tugadh (cas agus iolraigh iad), ansin suimigh na cothromóidí agus a luachanna ΔH. Fágann na téarmaí a chealaítear an chothromóid sprice amháin.",
+      "tags": ["modh"]
+    },
+    {
+      "id": "hess-14", "topic": "fuels", "subtopic": "Dlí Hess", "type": "order", "difficulty": 1,
+      "question": "Cuir na halcáin seo in ord méadaitheach de mhéid (luach uimhriúil) a dteasa dócháin in aghaidh an mhóil.",
+      "answer": ["Meatán", "Eatán", "Própán", "Bútán"],
+      "explanation": "Dá mhéad adamh carbóin agus hidrigine sa mhóilín, is mó nasc a bhristear agus a dhéantar, mar sin méadaíonn méid an teasa dócháin: meatán (−890), eatán (−1560), própán (−2220), bútán (−2877 kJ mol⁻¹).",
+      "tags": ["teas dócháin"]
+    },
+    {
+      "id": "hess-15", "topic": "fuels", "subtopic": "Dlí Hess", "type": "match", "difficulty": 2,
+      "question": "Meaitseáil gach téarma lena shainmhíniú.",
+      "answer": [
+        ["Teas dócháin", "An t-athrú teasa nuair a dhóitear mól amháin de shubstaint go hiomlán in ocsaigin"],
+        ["Teas foirmithe", "An t-athrú teasa nuair a fhoirmítear mól amháin de chomhdhúil óna dúile ina staideanna caighdeánacha"],
+        ["Teas neodrúcháin", "An t-athrú teasa nuair a imoibríonn mól amháin d’iain H+ ó aigéad le mól amháin d’iain OH- ó bhun"],
+        ["Fuinneamh nasc", "An meánfhuinneamh a theastaíonn chun mól amháin de nasc comhfhiúsach a bhriseadh agus na hadaimh neodracha a scaradh go hiomlán"]
+      ],
+      "explanation": "Is sainmhínithe caighdeánacha na hArdteistiméireachta iad seo; tabhair faoi deara go mbaineann siad go léir le mól amháin.",
+      "tags": ["sainmhínithe"]
+    }
+  ]
+}

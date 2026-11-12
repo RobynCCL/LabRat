@@ -99,7 +99,9 @@ export function describeAnswer(q: Question): string {
     case 'multi':
       return q.answer.map((i) => q.options[i]).join('; ');
     case 'numeric':
-      return `${q.answer.value}${q.answer.unit ? ' ' + q.answer.unit : ''}`;
+      // With a prefix like "ΔH =", show the sign explicitly (+226) because the sign matters.
+      const v = q.answer.prefix && q.answer.value > 0 ? `+${q.answer.value}` : `${q.answer.value}`;
+      return `${q.answer.prefix ? q.answer.prefix + ' ' : ''}${v}${q.answer.unit ? ' ' + q.answer.unit : ''}`;
     case 'text':
       return q.answer[0];
     case 'order':
