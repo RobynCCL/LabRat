@@ -1,0 +1,142 @@
+{
+  "bankId": "sample",
+  "name": "Sample questions (for testing)",
+  "version": 1,
+  "description": "A small built-in sample covering every question type. Disable it in the Question Bank Manager once you add your own banks.",
+  "sample": true,
+  "questions": [
+    {
+      "id": "at-01", "topic": "atomic-structure", "subtopic": "History of the atom", "type": "mcq", "difficulty": 1,
+      "question": "Which subatomic particle was discovered by James Chadwick in 1932?",
+      "options": ["Proton", "Neutron", "Electron", "Positron"],
+      "answer": 1,
+      "explanation": "Chadwick bombarded beryllium with alpha particles and detected a neutral, penetrating radiation: the neutron.",
+      "tags": ["history"]
+    },
+    {
+      "id": "at-02", "topic": "atomic-structure", "subtopic": "Electron configuration", "type": "text", "difficulty": 2,
+      "question": "Write the electron configuration (s, p notation) of a sodium atom.",
+      "answer": ["1s2 2s2 2p6 3s1", "1s2 2s2 2px2 2py2 2pz2 3s1"],
+      "explanation": "Sodium has 11 electrons: 1s² 2s² 2p⁶ 3s¹. The outer 3s electron is easily lost to form Na⁺.",
+      "tags": ["configuration"]
+    },
+    {
+      "id": "at-03", "topic": "atomic-structure", "subtopic": "Isotopes & Ar", "type": "multi", "difficulty": 1,
+      "question": "Which statements are true of isotopes of the same element? Select all that apply.",
+      "options": ["They have the same number of protons", "They have different numbers of neutrons", "They have the same mass number", "They have the same chemical properties"],
+      "answer": [0, 1, 3],
+      "explanation": "Isotopes have the same atomic number (protons) but different numbers of neutrons, so their mass numbers differ. Chemical properties depend on electron arrangement, which is the same."
+    },
+    {
+      "id": "at-04", "topic": "atomic-structure", "subtopic": "Periodic trends", "type": "order", "difficulty": 3,
+      "question": "Arrange these elements in order of increasing first ionisation energy.",
+      "answer": ["Na", "Al", "Mg", "Si"],
+      "explanation": "Ionisation energy generally rises across a period, but Al is lower than Mg: aluminium’s outer electron is in a 3p sublevel, which is higher in energy and shielded by the full 3s sublevel."
+    },
+    {
+      "id": "at-05", "topic": "atomic-structure", "subtopic": "Isotopes & Ar", "type": "numeric", "difficulty": 2,
+      "question": "A sample of chlorine is 75% Cl-35 and 25% Cl-37. Calculate the relative atomic mass of chlorine.",
+      "answer": { "value": 35.5, "tolerance": 0.05 },
+      "explanation": "Ar = (75 × 35 + 25 × 37) ÷ 100 = (2625 + 925) ÷ 100 = 35.5"
+    },
+
+    {
+      "id": "st-01", "topic": "stoichiometry", "subtopic": "The mole", "type": "numeric", "difficulty": 1,
+      "question": "How many moles are in 4.0 g of sodium hydroxide, NaOH? (Mr = 40)",
+      "answer": { "value": 0.1, "tolerance": 0.001, "unit": "mol" },
+      "explanation": "moles = mass ÷ Mr = 4.0 ÷ 40 = 0.10 mol"
+    },
+    {
+      "id": "st-02", "topic": "stoichiometry", "subtopic": "Molar volume", "type": "numeric", "difficulty": 1,
+      "question": "What volume does 0.5 mol of an ideal gas occupy at s.t.p.?",
+      "answer": { "value": 11.2, "tolerance": 0.05, "unit": "L" },
+      "explanation": "One mole of gas occupies 22.4 L at s.t.p., so 0.5 × 22.4 = 11.2 L."
+    },
+    {
+      "id": "st-03", "topic": "stoichiometry", "subtopic": "The mole", "type": "mcq", "difficulty": 1,
+      "question": "What is the value of the Avogadro constant?",
+      "options": ["6.0 × 10^23 mol-1", "6.0 × 10^-23 mol-1", "1.66 × 10^-24 mol-1", "3.0 × 10^8 mol-1"],
+      "answer": 0,
+      "explanation": "The Avogadro constant, L, is 6.0 × 10²³ mol⁻¹: the number of particles in one mole."
+    },
+    {
+      "id": "st-04", "topic": "stoichiometry", "subtopic": "The mole", "type": "match", "difficulty": 2,
+      "question": "Match each quantity with its unit.",
+      "answer": [["Molar mass", "g mol-1"], ["Concentration", "mol L-1"], ["Amount of substance", "mol"], ["Molar volume at s.t.p.", "22.4 L"]],
+      "explanation": "Molar mass is grams per mole, concentration is moles per litre, amount of substance is measured in moles, and one mole of gas occupies 22.4 L at s.t.p."
+    },
+    {
+      "id": "st-05", "topic": "stoichiometry", "subtopic": "Empirical & molecular formulae", "type": "text", "difficulty": 1,
+      "question": "What is the empirical formula of glucose, C6H12O6?",
+      "answer": ["CH2O"],
+      "caseSensitive": true,
+      "explanation": "Divide each subscript by the highest common factor, 6: C₆H₁₂O₆ → CH₂O."
+    },
+
+    {
+      "id": "or-01", "topic": "organic", "subtopic": "Functional groups", "type": "mcq", "difficulty": 1,
+      "question": "Which functional group is present in ethanoic acid, CH3COOH?",
+      "options": ["Hydroxyl", "Carbonyl", "Carboxyl", "Ester"],
+      "answer": 2,
+      "explanation": "Carboxylic acids contain the carboxyl group, –COOH."
+    },
+    {
+      "id": "or-02", "topic": "organic", "subtopic": "Naming (IUPAC)", "type": "text", "difficulty": 1,
+      "question": "Give the IUPAC name of CH3CH2OH.",
+      "answer": ["ethanol"],
+      "explanation": "Two carbons (eth-), single bonds only (-an-), and an –OH group (-ol): ethanol."
+    },
+    {
+      "id": "or-03", "topic": "organic", "subtopic": "Reaction types", "type": "multi", "difficulty": 2,
+      "question": "Which of these are addition reactions? Select all that apply.",
+      "options": ["C2H4 + Br2 -> C2H4Br2", "C2H4 + H2 -> C2H6", "CH4 + Cl2 -> CH3Cl + HCl", "C2H5OH -> C2H4 + H2O"],
+      "answer": [0, 1],
+      "explanation": "In addition reactions two molecules join to form one, typically across a C=C double bond. Chlorination of methane is substitution; dehydration of ethanol is elimination."
+    },
+    {
+      "id": "or-04", "topic": "organic", "subtopic": "Homologous series", "type": "order", "difficulty": 1,
+      "question": "Arrange these alkanes in order of increasing boiling point.",
+      "answer": ["Methane", "Ethane", "Propane", "Butane"],
+      "explanation": "Boiling point rises with chain length because larger molecules have stronger van der Waals forces between them."
+    },
+    {
+      "id": "or-05", "topic": "organic", "subtopic": "Reaction types", "type": "match", "difficulty": 2,
+      "question": "Match each reaction type with an example.",
+      "answer": [["Substitution", "CH4 + Cl2 -> CH3Cl + HCl"], ["Addition", "C2H4 + H2 -> C2H6"], ["Elimination", "C2H5OH -> C2H4 + H2O"], ["Redox", "Ethanol -> ethanal"]],
+      "explanation": "Substitution swaps one atom for another; addition joins molecules across a double bond; elimination removes a small molecule to form a double bond; oxidation of ethanol to ethanal (acidified Na₂Cr₂O₇) is a redox reaction."
+    },
+
+    {
+      "id": "ra-01", "topic": "rates", "subtopic": "Catalysis", "type": "mcq", "difficulty": 1,
+      "question": "How does a catalyst increase the rate of a reaction?",
+      "options": ["It raises the temperature of the reactants", "It provides a pathway with a lower activation energy", "It increases the concentration of the reactants", "It shifts the equilibrium to the right"],
+      "answer": 1,
+      "explanation": "A catalyst provides an alternative reaction pathway with a lower activation energy, so a greater fraction of collisions are effective. It is not used up."
+    },
+    {
+      "id": "ra-02", "topic": "rates", "subtopic": "Factors affecting rate", "type": "multi", "difficulty": 1,
+      "question": "Which changes would increase the rate of reaction between marble chips and hydrochloric acid? Select all that apply.",
+      "options": ["Raising the temperature", "Using more concentrated acid", "Using larger marble chips", "Using powdered marble"],
+      "answer": [0, 1, 3],
+      "explanation": "Higher temperature, higher concentration and greater surface area (smaller pieces) all increase the rate. Larger chips have less surface area, so the reaction is slower."
+    },
+    {
+      "id": "ra-03", "topic": "rates", "subtopic": "Measuring rate", "type": "numeric", "difficulty": 2,
+      "question": "In a reaction, 60 cm3 of oxygen was collected in the first 2 minutes. Calculate the average rate in cm3 s-1.",
+      "answer": { "value": 0.5, "tolerance": 0.01, "unit": "cm3 s-1" },
+      "explanation": "2 minutes = 120 s. Average rate = 60 cm³ ÷ 120 s = 0.5 cm³ s⁻¹."
+    },
+    {
+      "id": "ra-04", "topic": "rates", "subtopic": "Catalysis", "type": "text", "difficulty": 2,
+      "question": "Name the catalyst used in the mandatory experiment on the decomposition of hydrogen peroxide.",
+      "answer": ["manganese dioxide", "manganese(IV) oxide", "manganese (IV) oxide", "manganese 4 oxide", "MnO2"],
+      "explanation": "Manganese(IV) oxide (manganese dioxide, MnO₂) catalyses 2H₂O₂ → 2H₂O + O₂."
+    },
+    {
+      "id": "ra-05", "topic": "rates", "subtopic": "Factors affecting rate", "type": "order", "difficulty": 1,
+      "question": "The same mass of marble reacts with excess dilute HCl. Order these forms from slowest to fastest reaction.",
+      "answer": ["Large chips", "Small chips", "Powder"],
+      "explanation": "Smaller particles have a greater total surface area, so more collisions occur per second and the reaction is faster."
+    }
+  ]
+}

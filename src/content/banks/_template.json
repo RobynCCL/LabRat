@@ -1,0 +1,47 @@
+{
+  "bankId": "my-bank-id",
+  "name": "My question bank",
+  "version": 1,
+  "description": "Template: one example of each question type. Files starting with _ are not loaded by the game.",
+  "questions": [
+    {
+      "id": "mcq-example", "topic": "stoichiometry", "subtopic": "The mole", "type": "mcq", "difficulty": 1,
+      "question": "What is the Mr of H2O?",
+      "options": ["16", "17", "18", "20"],
+      "answer": 2,
+      "explanation": "2(1) + 16 = 18. 'answer' is the 0-based index of the correct option.",
+      "tags": ["example"]
+    },
+    {
+      "id": "multi-example", "topic": "bonding", "type": "multi", "difficulty": 2,
+      "question": "Which of these molecules are polar? Select all that apply.",
+      "options": ["H2O", "CO2", "NH3", "CH4"],
+      "answer": [0, 2],
+      "explanation": "'answer' lists every correct 0-based index. H₂O and NH₃ are polar; CO₂ and CH₄ are symmetrical."
+    },
+    {
+      "id": "numeric-example", "topic": "volumetric-analysis", "type": "numeric", "difficulty": 2,
+      "question": "What is the concentration of a solution with 0.02 mol of HCl in 250 cm3?",
+      "answer": { "value": 0.08, "tolerance": 0.001, "unit": "mol L-1" },
+      "explanation": "0.02 ÷ 0.250 = 0.08 mol L⁻¹. 'tolerance' is absolute; leave it out to allow 1%."
+    },
+    {
+      "id": "text-example", "topic": "organic", "type": "text", "difficulty": 1,
+      "question": "Name the gas produced when ethanol is dehydrated over Al2O3.",
+      "answer": ["ethene", "ethylene", "C2H4"],
+      "explanation": "List every acceptable answer. Comparison ignores spaces and case (set \"caseSensitive\": true for formulas like Co vs CO)."
+    },
+    {
+      "id": "order-example", "topic": "bonding", "type": "order", "difficulty": 2,
+      "question": "Order these by increasing electronegativity.",
+      "answer": ["Na", "C", "N", "F"],
+      "explanation": "Write the items in the CORRECT order; the game shuffles them."
+    },
+    {
+      "id": "match-example", "topic": "environmental", "type": "match", "difficulty": 1,
+      "question": "Match each stage of water treatment to its purpose.",
+      "answer": [["Flocculation", "Clumps suspended particles"], ["Filtration", "Removes remaining solids"], ["Chlorination", "Kills micro-organisms"]],
+      "explanation": "Write correct [left, right] pairs; the game shuffles the right-hand column."
+    }
+  ]
+}

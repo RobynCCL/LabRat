@@ -1,0 +1,52 @@
+/*
+ * Design tokens. Colours are "R G B" triples so Tailwind can apply opacity
+ * (bg-primary/10). Light theme is the default; dark overrides below.
+ * Spacing uses Tailwind's 4px scale; radii and shadows are in tailwind.config.js.
+ */
+:root {
+  --bg: 246 245 240;
+  --surface: 255 255 255;
+  --surface-2: 240 239 233;
+  --border: 224 222 213;
+  --ink: 30 35 48;
+  --muted: 104 112 128;
+  --primary: 15 118 110;      /* teal-700 */
+  --primary-ink: 255 255 255;
+  --accent: 234 140 52;       /* warm orange */
+  /* Feedback colours from the Okabe–Ito colour-blind-safe palette;
+     always paired with an icon + text, never colour alone. */
+  --good: 0 128 96;           /* bluish green */
+  --bad: 205 85 0;            /* vermillion */
+  --warn: 196 140 0;
+  --mole: 214 150 30;
+  --r-common: 120 130 145;
+  --r-uncommon: 46 139 87;
+  --r-rare: 47 111 179;
+  --r-epic: 139 82 196;
+  --r-legendary: 214 140 20;
+  --lab-bg: #e9e6dc;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: 17 21 28;
+  --surface: 27 33 42;
+  --surface-2: 35 43 54;
+  --border: 50 60 74;
+  --ink: 232 237 242;
+  --muted: 150 160 176;
+  --primary: 45 190 172;
+  --primary-ink: 10 20 24;
+  --accent: 245 160 80;
+  --good: 64 196 150;
+  --bad: 240 128 64;
+  --warn: 230 186 60;
+  --mole: 240 190 70;
+  --r-common: 150 160 175;
+  --r-uncommon: 80 190 120;
+  --r-rare: 100 160 230;
+  --r-epic: 180 130 240;
+  --r-legendary: 245 180 60;
+  --lab-bg: #141a22;
+  color-scheme: dark;
+}
